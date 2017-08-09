@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en" xml:lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0">
+
+    <link href="build/vendor.css" rel="stylesheet">
+    <link href="build/style.css" rel="stylesheet">
+
+    <link rel="shortcut icon" href="img/favicon.ico">
+
+
+    <script src="build/bundle.js"></script>
+
+    <style>
+
+    </style>
+    <title>Roce</title>
+</head>
+
+<body>
+<div class='container container-fixed'>
+
+    <input type='hidden' id='student_id'>
+
+    <h2>
+        <a href='https://first-finance.institute' title='First Finance Institute' target=_blank><img
+                src='img/logo_ffi_32px.png' title='First Finance Institute' style="vertical-align: top"></a>
+        <span id='title'>Roce</span>
+    </h2>
+    <hr/>
+
+    <div class="row">
+        <div class='col-lg-12' id='graphDiv' style='padding:0'>
+            <svg height="400">
+                <!-- graph goes here -->
+            </svg>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-xs-6 col-md-4">
+            <h4 class="text-uppercase">Individual Stocks</h4>
+            <p class="text-muted">Click to <span
+                    class="btn-link"><strong>activate</strong></span>/<strong>deactivate</strong> their visualization
+            </p>
+            <div class="form-group">
+                <label for="color-legend-select">Color Legend</label>
+                <select class="selectpicker form-control" id="color-legend-select">
+                    <option>Exchange</option>
+                    <option>Industry</option>
+                    <option>Market Cap</option>
+                    <option>Region</option>
+                </select>
+
+            </div>
+
+            <button class="btn btn-default" id="test-update">Update Chart (For Test)</button>
+        </div>
+    </div>
+
+    <div class="row" id="options">
+        <div class="col-xs-6">
+
+        </div>
+
+    </div>
+</div>
+<div class="loading" style="display: none;"></div>
+</body>
+</html>
