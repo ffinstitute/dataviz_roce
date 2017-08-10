@@ -31553,7 +31553,7 @@ $(document).ready(function () {
             // init industry options
             $.each(industry_list, function (industry_name, sector_name) {
                 $(".industry select").append(
-                    '<option value="' + industry_name + '" data-tokens="' + sector_name + '">' + industry_name + '</option>'
+                    '<option value="' + industry_name + '" data-tokens="' + sector_name + " " + industry_name + '">' + industry_name + '</option>'
                 );
             });
 
