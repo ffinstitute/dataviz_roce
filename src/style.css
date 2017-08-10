@@ -28,12 +28,19 @@ General styles
     font-family: Anton, monospace;
 }
 
+.color-legend-select-wrapper .form-control {
+    max-width: 173px;
+}
+
+label {
+    display: block;
+}
+
 #options label {
     font-size: 9pt;
     font-weight: 400;
     color: #848484;
     text-decoration: underline;
-    display: block;
 }
 
 .option-wrapper {

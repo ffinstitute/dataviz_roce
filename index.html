@@ -40,7 +40,7 @@
                         class="option-deactivate-demo">deactivate</span> their
                 visualization
             </p>
-            <div class="form-group">
+            <div class="form-group color-legend-select-wrapper">
                 <label for="color-legend-select">Color Legend</label>
                 <select class="selectpicker form-control" id="color-legend-select">
                     <option>Exchange</option>
@@ -49,9 +49,9 @@
                     <option>Region</option>
                 </select>
 
+                <button class="btn btn-default" id="test-update">Update Chart (For Test)</button>
             </div>
 
-            <button class="btn btn-default" id="test-update">Update Chart (For Test)</button>
         </div>
     </div>
 
@@ -67,6 +67,12 @@
         </div>
         <div class="col-xs-6 col-lg-4 sector option-wrapper">
             <label class="text-muted">Sector</label>
+        </div>
+        <div class="col-xs-6 col-lg-4 industry option-wrapper">
+            <label class="text-muted">Industry</label>
+            <select class="selectpicker" data-live-search="true">
+                <option value="">All</option>
+            </select>
         </div>
     </div>
 </div>

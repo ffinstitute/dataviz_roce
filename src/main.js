@@ -18,9 +18,9 @@ $(document).ready(function () {
         $graph_div = $("#graphDiv"),
         exchange_list = [],
         market_cap_list = [],
-        region_list = [],
+        region_list = {},
         sector_list = [],
-        industry_list = [],
+        industry_list = {},
         beta, correlation, company_data, company_exchange, graph_div_width, config;
 
 
@@ -96,7 +96,7 @@ $(document).ready(function () {
                 var sector = datum1['Sector'],
                     industry = datum1['Industry'];
                 if (sector_list.indexOf(sector) === -1) sector_list.push(sector);
-                if (industry_list.indexOf(industry) === -1) industry_list.push(industry);
+                industry_list[industry] = sector;
                 return datum1;
             });
 
@@ -122,6 +122,14 @@ $(document).ready(function () {
                 $(".sector").append(generateOptionElement(sector_name, sector_name));
             });
 
+            // init industry options
+            $.each(industry_list, function (industry_name, sector_name) {
+                $(".industry select").append(
+                    '<option value="' + industry_name + '" data-tokens="' + sector_name + '">' + industry_name + '</option>'
+                );
+            });
+
+            $('.industry .selectpicker').selectpicker('refresh').selectpicker('deselectAll');
 
             // add listeners
             $("span.option").click(function () {
@@ -189,7 +197,7 @@ $(document).ready(function () {
                 diagram_data.push({tr: Math.random() * 10, mg: Math.random() * 10, category_index: ii});
             }
         }
-        plotDiagram(diagram_data);
+        plotDiagram();
     }
 
     function plotDiagram() {
@@ -212,10 +220,10 @@ $(document).ready(function () {
             .attr("height", height + margin.top + margin.bottom)
             .style("margin-left", ($("div.container").width() - outer_width) / 2);
 
-        x.domain([0, d3.max(data, function (d) {
+        x.domain([0, d3.max(diagram_data, function (d) {
             return d['tr'];
         })]);
-        y.domain([0, d3.max(data, function (d) {
+        y.domain([0, d3.max(diagram_data, function (d) {
             return d['mg'];
         })]);
 
@@ -233,7 +241,7 @@ $(document).ready(function () {
             .call(d3.axisLeft(y).ticks().tickSize(-width).tickFormat(""));
 
         // Update the scatterplot
-        var dots = g.selectAll("circle").data(data);
+        var dots = g.selectAll("circle").data(diagram_data);
 
         dots.exit()
             .classed("exit", true)
