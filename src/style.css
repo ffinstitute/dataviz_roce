@@ -28,9 +28,65 @@ General styles
     font-family: Anton, monospace;
 }
 
+#options label {
+    font-size: 9pt;
+    font-weight: 400;
+    color: #848484;
+    text-decoration: underline;
+    display: block;
+}
+
+.option-wrapper {
+    padding-bottom: 10px;
+}
+
+span.option, span.option-activate-demo, span.option-deactivate-demo {
+    padding-right: 10px;
+    color: #848484;
+    cursor: pointer;
+    font-weight: 500;
+    white-space: nowrap;
+    display: inline-block;
+    /* prevent selection */
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+span.option-activate-demo, span.option-deactivate-demo {
+    padding: 0;
+}
+
+span.option:hover {
+    color: #565656;
+}
+
+span.option.selected, span.option-activate-demo {
+    color: #279fcf;
+}
+
+.sector .option {
+    min-width: 165px;
+}
+
+.region .option {
+    min-width: 120px;
+}
+
 /***
 * Diagram
 **/
+.axis path, .axis line {
+    stroke: #808080;
+}
+
+.axis text {
+    color: #808080;
+}
+
 .grid line {
     stroke: #656565;
     stroke-dasharray: 1, 2;

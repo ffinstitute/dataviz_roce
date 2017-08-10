@@ -31443,13 +31443,13 @@ window.math_func = math_func;
 $(document).ready(function () {
     var $loading_overlay = $("div.loading"),
         diagram_data = [],
-        beta, correlation,
         $graph_div = $("#graphDiv"),
-        graph_div_width,
-        exchange_list,
-        market_cap_list,
-        region_list,
-        industry_list;
+        exchange_list = [],
+        market_cap_list = [],
+        region_list = [],
+        sector_list = [],
+        industry_list = [],
+        beta, correlation, company_data, company_exchange, graph_div_width, config;
 
 
     // listeners
@@ -31464,12 +31464,107 @@ $(document).ready(function () {
     });
 
 
-    // load options
+    // load data
+    d3.csv('company_data.csv', function (error, data) {
+        if (error) {
+            company_data = false;
+            console.error(error);
+        } else {
+            company_data = data;
+        }
+    });
+
+    d3.csv('company_exchange.csv', function (error, data) {
+        if (error) {
+            company_exchange = false;
+            console.error(error);
+        } else {
+            company_exchange = data;
+        }
+    });
+
+    $.get("config.json", function (data) {
+        config = data;
+        market_cap_list = config['market_caps'];
+        region_list = config['regions'];
+    }).fail(function (error) {
+        config = false;
+        console.error(error);
+    });
+
+    initOptions();
 
     // functions
 
 
-    function initSelections() {
+    function initOptions() {
+        // Is data ready?
+        if (company_data && company_exchange && config) {
+            console.info("Initiating");
+
+            // prepare company_data by inserting exchange value
+            company_data = $.map(company_data, function (datum1) {
+                // console.log(datum);
+
+                // find exchange
+                company_exchange = $.grep(company_exchange, function (datum2) {
+                    if (datum1['Symbol'] === datum2['symbol']) {
+                        var exchange = datum2['exchange'];
+
+                        if (exchange_list.indexOf(exchange) === -1) exchange_list.push(exchange);
+                        datum1['Exchange'] = exchange;
+                        return false;
+                    } else {
+                        return true;
+                    }
+                });
+
+                // fill sector_list, industry_list
+
+                var sector = datum1['Sector'],
+                    industry = datum1['Industry'];
+                if (sector_list.indexOf(sector) === -1) sector_list.push(sector);
+                if (industry_list.indexOf(industry) === -1) industry_list.push(industry);
+                return datum1;
+            });
+
+
+            // init exchange options
+            $.each(exchange_list, function (i, exchange) {
+                // console.log(exchange);
+                $(".exchange").append(generateOptionElement(exchange, exchange));
+            });
+
+            // init market cap options
+            $.each(market_cap_list, function (cap_level_name, range) {
+                $(".cap").append(generateOptionElement(cap_level_name, range));
+            });
+
+            // init region options
+            $.each(region_list, function (region_name, countries) {
+                $(".region").append(generateOptionElement(region_name, countries));
+            });
+
+            // init sector options
+            $.each(sector_list, function (i, sector_name) {
+                $(".sector").append(generateOptionElement(sector_name, sector_name));
+            });
+
+
+            // add listeners
+            $("span.option").click(function () {
+                $(this).toggleClass("selected");
+            });
+        } else if (company_data === false || company_exchange === false || config === false) {
+            // deal with load error
+            alert("Something went wrong. See console log for details.");
+        } else {
+            return setTimeout(initOptions, 100);
+        }
+    }
+
+    function generateOptionElement(text, value) {
+        return $("<span class='option'></span>").text(text).data('value', value);
     }
 
 
@@ -31508,10 +31603,10 @@ $(document).ready(function () {
     var colorScale = d3.scaleOrdinal(d3.schemeCategory20);
 
     // Add Axis
-    g.append("g").attr("class", "axis x-axis").attr("transform", "translate(0," + height + ")");
-    g.append("g").attr("class", "axis y-axis");
     g.append("g").attr("class", "grid x-grid");
     g.append("g").attr("class", "grid y-grid");
+    g.append("g").attr("class", "axis x-axis").attr("transform", "translate(0," + height + ")");
+    g.append("g").attr("class", "axis y-axis");
 
     /**** Initiated ****/
     function test_plot() {
@@ -31525,8 +31620,8 @@ $(document).ready(function () {
         plotDiagram(diagram_data);
     }
 
-    function plotDiagram(data) {
-        if (!data) {
+    function plotDiagram() {
+        if (!diagram_data) {
             return false;
         }
         console.info(Date.now() % 100000, "Ploting data");

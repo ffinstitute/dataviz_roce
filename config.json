@@ -1,0 +1,156 @@
+{
+  "regions": {
+    "All": [
+      "Antigua and Barbuda",
+      "Argentina",
+      "Australia",
+      "Austria",
+      "Bahamas",
+      "Belgium",
+      "Bermuda",
+      "Brazil",
+      "British Virgin Islands",
+      "Canada",
+      "Cayman Islands",
+      "Chile",
+      "China",
+      "Colombia",
+      "Curacao",
+      "Cyprus",
+      "Denmark",
+      "Finland",
+      "France",
+      "Germany",
+      "Greece",
+      "Guernsey",
+      "Hong Kong",
+      "India",
+      "Indonesia",
+      "Ireland",
+      "Isle of Man",
+      "Israel",
+      "Italy",
+      "Japan",
+      "Jersey",
+      "Luxembourg",
+      "Macau",
+      "Marshall Islands",
+      "Mauritius",
+      "Mexico",
+      "Monaco",
+      "Netherlands Antilles",
+      "Netherlands",
+      "New Zealand",
+      "Norway",
+      "Panama",
+      "Papua New Guinea",
+      "Peru",
+      "Philippines",
+      "Poland",
+      "Puerto Rico",
+      "Russia",
+      "Singapore",
+      "South Africa",
+      "South Korea",
+      "Spain",
+      "Sweden",
+      "Switzerland",
+      "Taiwan",
+      "Turkey",
+      "United Arab Emirates",
+      "United Kingdom",
+      "United States"
+    ],
+    "Africa and Middle East": [
+      "Cyprus",
+      "Israel",
+      "Mauritius",
+      "South Africa",
+      "Turkey",
+      "United Arab Emirates"
+    ],
+    "Asia": [
+      "China",
+      "Hong Kong",
+      "India",
+      "Indonesia",
+      "Japan",
+      "Macau",
+      "Philippines",
+      "Singapore",
+      "South Korea",
+      "Taiwan"
+    ],
+    "Australia and South Pacific": [
+      "Australia",
+      "Marshall Islands",
+      "New Zealand",
+      "Papua New Guinea"
+    ],
+    "Europe": [
+      "Austria",
+      "Belgium",
+      "Denmark",
+      "Finland",
+      "France",
+      "Germany",
+      "Greece",
+      "Guernsey",
+      "Ireland",
+      "Isle of Man",
+      "Italy",
+      "Jersey",
+      "Luxembourg",
+      "Monaco",
+      "Netherlands",
+      "Norway",
+      "Poland",
+      "Russia",
+      "Spain",
+      "Sweden",
+      "Switzerland",
+      "United Kingdom"
+    ],
+    "Central America and Caribbean": [
+      "Antigua and Barbuda",
+      "Bahamas",
+      "Bermuda",
+      "British Virgin Islands",
+      "Cayman Islands",
+      "Curacao",
+      "Netherlands Antilles",
+      "Panama",
+      "Puerto Rico"
+    ],
+    "South America": [
+      "Argentina",
+      "Brazil",
+      "Chile",
+      "Colombia",
+      "Peru"
+    ],
+    "North America": [
+      "Canada",
+      "Mexico",
+      "United States"
+    ]
+  },
+  "market_caps": {
+    "Mega": [
+      2e11,
+      false
+    ],
+    "Large": [
+      1e10,
+      2e11
+    ],
+    "Mid": [
+      2e9,
+      2e11
+    ],
+    "Small": [
+      3e8,
+      2e9
+    ]
+  }
+}
