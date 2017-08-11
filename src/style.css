@@ -78,22 +78,17 @@ span.option, span.option-activate-demo, span.option-deactivate-demo {
     user-select: none;
 }
 
-.option-wrapper.on-legend span.option {
-    color: #ffffff;
-    cursor: default;
-    -webkit-border-radius: 3px;
-    -moz-border-radius: 3px;
-    border-radius: 3px;
-    text-shadow: 0 0 3px #000000;
-}
-
 .clear-button {
     margin-left: 5px;
     line-height: 1;
 }
 
-.on-legend .clear-button {
+.color-legend-rect {
     visibility: hidden;
+}
+
+.on-legend .option.selected .color-legend-rect {
+    visibility: visible;
 }
 
 span.option-activate-demo, span.option-deactivate-demo {
@@ -114,6 +109,14 @@ span.option.selected, span.option-activate-demo {
 
 .region .option {
     min-width: 120px;
+}
+
+.color-legend-rect {
+    width: 11px;
+    height: 11px;
+    position: relative;
+    left: -2px;
+    display: inline-block;
 }
 
 /***

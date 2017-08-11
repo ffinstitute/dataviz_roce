@@ -101,11 +101,7 @@ $(document).ready(function () {
                 industry_dict[industry] = sector;
                 return datum1;
             }), function (datum) {
-                if (datum === false) {
-                    console.log("n/a found");
-                    return false;
-                }
-                return true;
+                return datum !== false;
             });
 
             // init exchange options
@@ -146,10 +142,12 @@ $(document).ready(function () {
             // init color legend
             updateColorLegend();
 
-            // add listeners
+            /** add listeners **/
             // span click
             $("span.option").click(function () {
                 $(this).toggleClass("selected");
+                updateColorLegend();
+                updateClearAllButtons();
             });
 
             // legend select
@@ -163,6 +161,7 @@ $(document).ready(function () {
                 var $this = $(this);
 
                 $this.closest(".option-wrapper").find("span").removeClass("selected");
+                updateClearAllButtons();
             });
 
 
@@ -174,37 +173,46 @@ $(document).ready(function () {
         }
     }
 
+    function updateClearAllButtons() {
+        $(".option-wrapper").each(function () {
+            var $wrapper = $(this);
+            $wrapper.find(".clear-button").toggleClass("invisible", $wrapper.find('.option.selected').length === 0);
+        });
+    }
+
     function generateOptionElement(text, value) {
-        return $("<span class='option'></span>").text(text).data('value', value);
+        return $("<span class='option'></span>").text(text).data('value', value)
+            .prepend("<div class='color-legend-rect'></div>");
     }
 
     function updateColorLegend() {
-        var list;
-
-        cleanOptionsBgColor();
+        var $wrapper;
 
         switch ($("#color-legend-select").val()) {
             case 'exchange':
-                list = exchange_list;
-                updateColorScale(list.length);
-                $(".exchange .option").each(updateOptionBgColor);
+                $wrapper = $(".exchange.option-wrapper");
                 break;
             case 'sector':
-                list = sector_list;
-                updateColorScale(list.length);
-                $(".sector .option").each(updateOptionBgColor);
+                $wrapper = $(".sector.option-wrapper");
                 break;
             case 'market_cap':
-                list = market_cap_list;
-                updateColorScale(list.length);
-                $(".cap .option").each(updateOptionBgColor);
+                $wrapper = $(".cap.option-wrapper");
                 break;
             case 'region':
-                list = region_list;
-                updateColorScale(list.length);
-                $(".region .option").each(updateOptionBgColor);
+                $wrapper = $(".region.option-wrapper");
                 break;
+            default:
+                return console.error("Unknown legend value") && false;
         }
+
+        // manipulate class
+        $(".option-wrapper").removeClass("on-legend");
+        $wrapper.addClass("on-legend");
+
+        // update color
+        var $selected_options = $wrapper.find("span.option.selected");
+        updateColorScale($selected_options.length);
+        $selected_options.each(updateOptionLegendColor);
     }
 
     function updateColorScale(color_count) {
@@ -217,16 +225,10 @@ $(document).ready(function () {
         }
     }
 
-    function cleanOptionsBgColor() {
-        $(".option").css("background", '');
-    }
-
-    function updateOptionBgColor(option_index) {
+    function updateOptionLegendColor(option_index) {
         var $this = $(this);
         var color = color_scale(option_index);
-        $(".option-wrapper").removeClass("on-legend");
-        $this.closest(".option-wrapper").addClass("on-legend");
-        $this.css({background: color});
+        $this.find(".color-legend-rect").css({background: color});
     }
 
 
