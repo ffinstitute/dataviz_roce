@@ -3,8 +3,9 @@ window.$ = window.jQuery = require('jquery');
 require("bootstrap");
 require('bootstrap-select');
 
-var d3 = require("d3");
-var math_func = require('./math_func.js');
+var d3 = require("d3"),
+    math_func = require('./math_func.js'),
+    d3_sale_chromatic = require("d3-scale-chromatic");
 
 // console.log(math_func);
 
@@ -128,18 +129,30 @@ $(document).ready(function () {
                     '<option value="' + industry_name + '" data-tokens="' + sector_name + " " + industry_name + '">' + industry_name + '</option>'
                 );
             });
-            $('.industry .selectpicker').selectpicker('refresh').selectpicker('deselectAll');
+            $('.industry .selectpicker').selectpicker('refresh');
 
             // init color legend
             updateColorLegend();
 
             // add listeners
+            // span click
             $("span.option").click(function () {
                 $(this).toggleClass("selected");
             });
+
+            // legend select
             $("#color-legend-select").on('hidden.bs.select', function (e) {
                 updateColorLegend();
             });
+
+            // clear all button
+            $(".clear-button").click(function () {
+                console.log(this);
+                var $this = $(this);
+
+                $this.closest(".option-wrapper").find("span").removeClass("selected");
+            });
+
 
         } else if (company_data === false || company_exchange === false || config === false) {
             // deal with load error
@@ -183,8 +196,10 @@ $(document).ready(function () {
     }
 
     function updateColorScale(color_count) {
-        if (color_count > 10) {
+        if (color_count > 12) {
             color_scale = d3.scaleOrdinal(d3.schemeCategory20);
+        } else if (color_count > 10) {
+            color_scale = d3.scaleOrdinal(d3_sale_chromatic.schemePaired);
         } else {
             color_scale = d3.scaleOrdinal(d3.schemeCategory10);
         }
@@ -198,7 +213,7 @@ $(document).ready(function () {
         var $this = $(this);
         var color = color_scale(option_index);
         $(".option-wrapper").removeClass("on-legend");
-        $this.parents(".option-wrapper").addClass("on-legend");
+        $this.closest(".option-wrapper").addClass("on-legend");
         $this.css({background: color});
     }
 
