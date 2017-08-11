@@ -31446,10 +31446,10 @@ $(document).ready(function () {
         $graph_div = $("#graphDiv"),
         exchange_list = [],
         market_cap_list = [],
-        region_list = {},
+        region_list = [],
         sector_list = [],
-        industry_list = {},
-        beta, correlation, company_data, company_exchange, graph_div_width, config;
+        industry_dict = {},
+        beta, correlation, company_data, company_exchange, graph_div_width, config, color_scale;
 
 
     // listeners
@@ -31524,7 +31524,7 @@ $(document).ready(function () {
                 var sector = datum1['Sector'],
                     industry = datum1['Industry'];
                 if (sector_list.indexOf(sector) === -1) sector_list.push(sector);
-                industry_list[industry] = sector;
+                industry_dict[industry] = sector;
                 return datum1;
             });
 
@@ -31536,13 +31536,13 @@ $(document).ready(function () {
             });
 
             // init market cap options
-            $.each(market_cap_list, function (cap_level_name, range) {
-                $(".cap").append(generateOptionElement(cap_level_name, range));
+            $.each(market_cap_list, function (i, datum) {
+                $(".cap").append(generateOptionElement(datum['name'], datum['range']));
             });
 
             // init region options
-            $.each(region_list, function (region_name, countries) {
-                $(".region").append(generateOptionElement(region_name, countries));
+            $.each(region_list, function (i, datum) {
+                $(".region").append(generateOptionElement(datum['name'], datum['countries']));
             });
 
             // init sector options
@@ -31551,18 +31551,24 @@ $(document).ready(function () {
             });
 
             // init industry options
-            $.each(industry_list, function (industry_name, sector_name) {
+            $.each(industry_dict, function (industry_name, sector_name) {
                 $(".industry select").append(
                     '<option value="' + industry_name + '" data-tokens="' + sector_name + " " + industry_name + '">' + industry_name + '</option>'
                 );
             });
-
             $('.industry .selectpicker').selectpicker('refresh').selectpicker('deselectAll');
+
+            // init color legend
+            updateColorLegend();
 
             // add listeners
             $("span.option").click(function () {
                 $(this).toggleClass("selected");
             });
+            $("#color-legend-select").on('hidden.bs.select', function (e) {
+                updateColorLegend();
+            });
+
         } else if (company_data === false || company_exchange === false || config === false) {
             // deal with load error
             alert("Something went wrong. See console log for details.");
@@ -31573,6 +31579,55 @@ $(document).ready(function () {
 
     function generateOptionElement(text, value) {
         return $("<span class='option'></span>").text(text).data('value', value);
+    }
+
+    function updateColorLegend() {
+        var list;
+
+        cleanOptionsBgColor();
+
+        switch ($("#color-legend-select").val()) {
+            case 'exchange':
+                list = exchange_list;
+                updateColorScale(list.length);
+                $(".exchange .option").each(updateOptionBgColor);
+                break;
+            case 'sector':
+                list = sector_list;
+                updateColorScale(list.length);
+                $(".sector .option").each(updateOptionBgColor);
+                break;
+            case 'market_cap':
+                list = market_cap_list;
+                updateColorScale(list.length);
+                $(".cap .option").each(updateOptionBgColor);
+                break;
+            case 'region':
+                list = region_list;
+                updateColorScale(list.length);
+                $(".region .option").each(updateOptionBgColor);
+                break;
+        }
+    }
+
+    function updateColorScale(color_count) {
+        if (color_count > 10) {
+            color_scale = d3.scaleOrdinal(d3.schemeCategory20);
+        } else {
+            color_scale = d3.scaleOrdinal(d3.schemeCategory10);
+        }
+    }
+
+    function cleanOptionsBgColor() {
+        $(".option").css("background", '');
+    }
+
+    function updateOptionBgColor(option_index) {
+        var $this = $(this);
+        var color = color_scale(option_index);
+        $(".option-wrapper").removeClass("on-legend");
+        $this.parents(".option-wrapper").addClass("on-legend");
+        $this.css({background: color});
     }
 
 
@@ -31607,8 +31662,6 @@ $(document).ready(function () {
     // append svg
     var svg = d3.select("#graphDiv svg"),
         g = svg.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-
-    var colorScale = d3.scaleOrdinal(d3.schemeCategory20);
 
     // Add Axis
     g.append("g").attr("class", "grid x-grid");
@@ -31680,7 +31733,7 @@ $(document).ready(function () {
 
         dots.classed("update", true)
             .attr("fill", function (d) {
-                return colorScale(d['category_index']);
+                return color_scale(d['category_index']);
             });
 
         dots.enter().append("circle")
@@ -31724,7 +31777,7 @@ $(document).ready(function () {
                 return y(d['mg']);
             })
             .attr("fill", function (d) {
-                return colorScale(d['category_index']);
+                return color_scale(d['category_index']);
             });
 
         // Update Axis

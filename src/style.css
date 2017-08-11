@@ -61,7 +61,8 @@ label {
 }
 
 span.option, span.option-activate-demo, span.option-deactivate-demo {
-    padding-right: 10px;
+    padding: 0 4px;
+    margin: 0 3px 3px 0;
     color: #a3a8ad;
     cursor: pointer;
     font-weight: 500;
@@ -76,6 +77,22 @@ span.option, span.option-activate-demo, span.option-deactivate-demo {
     -ms-user-select: none;
     user-select: none;
 }
+
+.option-wrapper.on-legend span.option {
+    color: #ffffff;
+    cursor: default;
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
+    text-shadow: 0 0 1px #000000;
+}
+
+/****
+TODO:
+1. add "clear all" button
+2. Remove 'n/a's
+3. Remove region "All" option?
+ */
 
 span.option-activate-demo, span.option-deactivate-demo {
     padding: 0;
