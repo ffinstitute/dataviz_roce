@@ -84,7 +84,7 @@ span.option, span.option-activate-demo, span.option-deactivate-demo {
     -webkit-border-radius: 3px;
     -moz-border-radius: 3px;
     border-radius: 3px;
-    text-shadow: 0 0 1px #000000;
+    text-shadow: 0 0 3px #000000;
 }
 
 .clear-button {
@@ -95,16 +95,6 @@ span.option, span.option-activate-demo, span.option-deactivate-demo {
 .on-legend .clear-button {
     visibility: hidden;
 }
-
-
-
-/****
-TODO:
-1. add "clear all" button
-2. Remove 'n/a's
-3. Remove region "All" option?
-4. Change color to 12 cats
- */
 
 span.option-activate-demo, span.option-deactivate-demo {
     padding: 0;

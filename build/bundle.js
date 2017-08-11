@@ -33019,8 +33019,12 @@ $(document).ready(function () {
             console.info("Initiating");
 
             // prepare company_data by inserting exchange value
-            company_data = $.map(company_data, function (datum1) {
+            company_data = $.grep($.map(company_data, function (datum1) {
                 // console.log(datum);
+                var sector = datum1['Sector'],
+                    industry = datum1['Industry'];
+
+                if (sector === "n/a" || industry === "n/a") return false;
 
                 // find exchange
                 company_exchange = $.grep(company_exchange, function (datum2) {
@@ -33036,14 +33040,16 @@ $(document).ready(function () {
                 });
 
                 // fill sector_list, industry_list
-
-                var sector = datum1['Sector'],
-                    industry = datum1['Industry'];
                 if (sector_list.indexOf(sector) === -1) sector_list.push(sector);
                 industry_dict[industry] = sector;
                 return datum1;
+            }), function (datum) {
+                if (datum === false) {
+                    console.log("n/a found");
+                    return false;
+                }
+                return true;
             });
-
 
             // init exchange options
             $.each(exchange_list, function (i, exchange) {
@@ -33056,11 +33062,17 @@ $(document).ready(function () {
                 $(".cap").append(generateOptionElement(datum['name'], datum['range']));
             });
 
+            region_list.sort(function (a, b) {
+                return a['name'].length - b['name'].length;
+            });
             // init region options
             $.each(region_list, function (i, datum) {
                 $(".region").append(generateOptionElement(datum['name'], datum['countries']));
             });
 
+            sector_list.sort(function (a, b) {
+                return a.length - b.length;
+            });
             // init sector options
             $.each(sector_list, function (i, sector_name) {
                 $(".sector").append(generateOptionElement(sector_name, sector_name));
