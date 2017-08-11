@@ -32969,8 +32969,6 @@ $(document).ready(function () {
 
 
     // listeners
-    $("#test-update").click(test_plot);
-
     $(window).resize(function () {
         var new_graph_div_width = $graph_div.width();
         if (new_graph_div_width !== graph_div_width) {
@@ -33083,19 +33081,19 @@ $(document).ready(function () {
             $('.industry .selectpicker').selectpicker('refresh');
 
             // init color legend
-            updateColorLegend();
+            updateDiagramWrapper();
 
             /** add listeners **/
             // span click
             $("span.option").click(function () {
                 $(this).toggleClass("selected");
-                updateColorLegend();
+                updateDiagramWrapper();
                 updateClearAllButtons();
             });
 
             // legend select
             $("#color-legend-select").on('hidden.bs.select', function (e) {
-                updateColorLegend();
+                updateDiagramWrapper();
             });
 
             // clear all button
@@ -33128,6 +33126,12 @@ $(document).ready(function () {
             .prepend("<div class='color-legend-rect'></div>");
     }
 
+    function updateDiagramWrapper() {
+        updateColorLegend();
+        updateDiagramData();
+        plotDiagram();
+    }
+
     function updateColorLegend() {
         var $wrapper;
 
@@ -33156,6 +33160,21 @@ $(document).ready(function () {
         var $selected_options = $wrapper.find("span.option.selected");
         updateColorScale($selected_options.length);
         $selected_options.each(updateOptionLegendColor);
+    }
+
+    function updateDiagramData() {
+        diagram_data = [];
+        var count_per_category = Math.round(Math.random() * 3 + 3);
+        var categories = $(".option-wrapper.on-legend .option.selected").map(function () {
+            return $(this).data('value');
+        });
+
+
+        $.each(categories, function (ii, v) {
+            for (var jj = 0; jj < count_per_category; jj++) {
+                diagram_data.push({tr: Math.random() * 10, mg: Math.random() * 10, category_index: ii});
+            }
+        });
     }
 
     function updateColorScale(color_count) {
@@ -33214,16 +33233,6 @@ $(document).ready(function () {
     g.append("g").attr("class", "axis y-axis");
 
     /**** Initiated ****/
-    function test_plot() {
-        diagram_data = [];
-        var count_per_category = Math.round(Math.random() * 3 + 3);
-        for (var ii = 0; ii < Math.random() * 5 + 7; ii++) {
-            for (var jj = 0; jj < count_per_category; jj++) {
-                diagram_data.push({tr: Math.random() * 10, mg: Math.random() * 10, category_index: ii});
-            }
-        }
-        plotDiagram();
-    }
 
     function plotDiagram() {
         if (!diagram_data) {
