@@ -22,7 +22,7 @@ $(document).ready(function () {
         region_list = [],
         sector_list = [],
         industry_dict = {},
-        beta, correlation, company_data, company_exchange, graph_div_width, config, color_scale;
+        company_data, ROCE_data, graph_div_width, config, color_scale;
 
 
     // listeners
@@ -36,21 +36,21 @@ $(document).ready(function () {
 
 
     // load data
-    d3.csv('company_data.csv', function (error, data) {
+    d3.json('backend?item=company_list', function (error, data) {
         if (error) {
             company_data = false;
             console.error(error);
         } else {
-            company_data = data;
+            company_data = data['companies'];
         }
     });
 
-    d3.csv('company_exchange.csv', function (error, data) {
+    d3.json('backend?item=ROCE_list', function (error, data) {
         if (error) {
-            company_exchange = false;
+            ROCE_data = false;
             console.error(error);
         } else {
-            company_exchange = data;
+            ROCE_data = data['ROCEs'];
         }
     });
 
@@ -70,29 +70,19 @@ $(document).ready(function () {
 
     function initOptions() {
         // Is data ready?
-        if (company_data && company_exchange && config) {
+        if (company_data && ROCE_data && config) {
             console.info("Initiating");
 
             // prepare company_data by inserting exchange value
             company_data = $.grep($.map(company_data, function (datum1) {
                 // console.log(datum);
-                var sector = datum1['Sector'],
-                    industry = datum1['Industry'];
+                var sector = datum1['sector'],
+                    industry = datum1['industry'],
+                    exchange = datum1['exchange'];
 
-                if (sector === "n/a" || industry === "n/a") return false;
+                if (!sector || !industry || sector === "n/a" || industry === "n/a") return false;
 
-                // find exchange
-                company_exchange = $.grep(company_exchange, function (datum2) {
-                    if (datum1['Symbol'] === datum2['symbol']) {
-                        var exchange = datum2['exchange'];
-
-                        if (exchange_list.indexOf(exchange) === -1) exchange_list.push(exchange);
-                        datum1['Exchange'] = exchange;
-                        return false;
-                    } else {
-                        return true;
-                    }
-                });
+                if (exchange_list.indexOf(exchange) === -1) exchange_list.push(exchange);
 
                 // fill sector_list, industry_list
                 if (sector_list.indexOf(sector) === -1) sector_list.push(sector);
@@ -163,7 +153,7 @@ $(document).ready(function () {
             });
 
 
-        } else if (company_data === false || company_exchange === false || config === false) {
+        } else if (company_data === false || ROCE_data === false || config === false) {
             // deal with load error
             alert("Something went wrong. See console log for details.");
         } else {
