@@ -10,18 +10,18 @@ header('Content-Type: application/json');
 
 require_once __DIR__ . "/ROCE.php";
 
-$SV = new ROCE();
+$ROCE = new ROCE();
 
 $dat = [];
 switch (@$_GET['item']) {
     case 'company_list':
-        $companies = $SV->getCompanies();
+        $companies = $ROCE->getCompanies();
         sendResponse(['success' => true, 'companies' => $companies]);
         break;
 
     case 'ROCE_list':
-        $exchanges = $SV->getROCEs();
-        sendResponse(['success' => true, 'ROCEs' => $exchanges]);
+        $ROCEs = $ROCE->getROCEs();
+        sendResponse(['success' => true, 'ROCEs' => $ROCEs]);
         break;
 
     default:

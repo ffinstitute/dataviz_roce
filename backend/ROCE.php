@@ -28,7 +28,18 @@ class ROCE
 
     function getROCEs()
     {
-        $stmt = $this->db->query('SELECT * FROM `ROCE`;');
-        return $stmt->fetchAll(\PDO::FETCH_COLUMN);
+        $stmt = $this->db->query('SELECT * FROM `nasdaq`.`ROCE`;');
+        $ROCEs = [];
+        while ($item = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+
+            $ROCEs[] = [
+                'TR' => round($item['turnover_ratio'], 2),
+                'OM' => round($item['operating_margin'], 4) * 100,
+                'RC' => round($item['ROCE'], 4) * 100,
+                'Y' => $item['year'],
+                'cId' => $item['company_id']
+            ];
+        }
+        return $ROCEs;
     }
 }

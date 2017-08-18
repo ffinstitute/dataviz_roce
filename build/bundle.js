@@ -32958,8 +32958,9 @@ window.math_func = math_func;
 
 $(document).ready(function () {
     var $loading_overlay = $("div.loading"),
-        diagram_data = [],
+        $color_legend_select = $("#color-legend-select"),
         $graph_div = $("#graphDiv"),
+        diagram_data = [],
         exchange_list = [],
         market_cap_list = [],
         region_list = [],
@@ -33015,6 +33016,7 @@ $(document).ready(function () {
         // Is data ready?
         if (company_data && ROCE_data && config) {
             console.info("Initiating");
+            // console.log(ROCE_data);
 
             // prepare company_data by inserting exchange value
             company_data = $.grep($.map(company_data, function (datum1) {
@@ -33064,9 +33066,12 @@ $(document).ready(function () {
 
             // init industry options
             $.each(industry_dict, function (industry_name, sector_name) {
-                $(".industry select").append(
-                    '<option value="' + industry_name + '" data-tokens="' + sector_name + " " + industry_name + '">' + industry_name + '</option>'
-                );
+                var $option = $('<option value="' + industry_name + '">' + industry_name + '</option>')
+                    .data({
+                        'sector': sector_name,
+                        'tokens': sector_name + " " + industry_name
+                    });
+                $(".industry select").append($option);
             });
             $('.industry .selectpicker').selectpicker('refresh');
 
@@ -33082,16 +33087,25 @@ $(document).ready(function () {
             });
 
             // legend select
-            $("#color-legend-select").on('hidden.bs.select', function (e) {
+            $color_legend_select.on('hidden.bs.select', function (e) {
                 updateDiagramWrapper();
             });
 
             // clear all button
             $(".clear-button").click(function () {
-                console.log(this);
-                var $this = $(this);
+                $(this).closest(".option-wrapper").find("span").removeClass("selected");
+                updateDiagramWrapper();
+                updateClearAllButtons();
+            });
 
-                $this.closest(".option-wrapper").find("span").removeClass("selected");
+            // industry select
+            $('div.industry.option-wrapper select').on("input change", function () {
+                var sector_name = $(this).find("option:selected").data('sector');
+
+                $(".sector.option-wrapper span").each(function () {
+                    $(this).toggleClass("selected", $(this).data('value') === sector_name);
+                }); // select sector according to industry
+                updateDiagramWrapper();
                 updateClearAllButtons();
             });
 
@@ -33125,7 +33139,7 @@ $(document).ready(function () {
     function updateColorLegend() {
         var $wrapper;
 
-        switch ($("#color-legend-select").val()) {
+        switch ($color_legend_select.val()) {
             case 'exchange':
                 $wrapper = $(".exchange.option-wrapper");
                 break;
@@ -33154,16 +33168,94 @@ $(document).ready(function () {
 
     function updateDiagramData() {
         diagram_data = [];
-        var count_per_category = Math.round(Math.random() * 3 + 3);
-        var categories = $(".option-wrapper.on-legend .option.selected").map(function () {
-            return $(this).data('value');
+
+        var options = getOptionsWrapper();
+        var color_legend = $color_legend_select.val();
+        var options_on_legend = options[color_legend];
+
+        /** test block ***/
+        // console.log("options", options);
+        // console.log("legend", color_legend);
+        // console.log("legend options", options[color_legend]);
+        if (!options_on_legend) return false;
+        /*** end of test block ***/
+
+        var matched_companies = [];
+        $.each(company_data, function () {
+            // filter out by exchange
+            var exchange_options = options['exchange'];
+            if (exchange_options && exchange_options.indexOf(this['exchange']) < 0) {
+                return;
+            }
+
+            // filter out by market cap
+            var market_cap_options = options['market_cap'];
+            if (market_cap_options) {
+                var cap_matched = false,
+                    company_cap = this['market_cap'];
+                $.each(market_cap_options, function () {
+                    if ((this[0] && this[0] > company_cap) || (this[1] && this[1] <= company_cap)) {
+                        return;
+                    }
+                    cap_matched = true;
+                });
+                if (!cap_matched) {
+                    return;
+                }
+            }
+
+            // filter out by sector
+            var sector_options = options['sector'];
+            if (sector_options && sector_options.indexOf(this['sector']) < 0) {
+                return;
+            }
+
+            // filter out by country
+            var country_options = options['region'];
+            if (country_options && country_options.indexOf(this['country']) < 0) {
+                return;
+            }
+
+            // filter out by industry
+            var industry_options = options['industry'];
+            if (industry_options && industry_options.indexOf(this['industry']) < 0) {
+                return;
+            }
+
+            /** Now we have valid companies **/
+            matched_companies.push({
+                'company_id': this['id'],
+                'color_index': options_on_legend.indexOf(this[color_legend])
+            });
         });
 
+        // console.log(matched_companies);
 
-        $.each(categories, function (ii, v) {
-            for (var jj = 0; jj < count_per_category; jj++) {
-                diagram_data.push({tr: Math.random() * 10, mg: Math.random() * 10, category_index: ii});
-            }
+        if (matched_companies.length === 0) return false;
+
+        $.each(ROCE_data, function () {
+            var ROCE_datum = this;
+            // console.log(ROCE_datum);
+
+            if (ROCE_datum['Y'] !== 2016) return;
+
+            if (Math.abs(ROCE_datum['TR']) > 5) return;
+            if (Math.abs(ROCE_datum['OM']) > 100) return;
+            /***test****/
+
+
+            $.each(matched_companies, function () {
+                // console.log("matched company", this);
+                if (this['company_id'] === ROCE_datum['cId']) {
+                    diagram_data.push({
+                        "TR": ROCE_datum['TR'],
+                        "OM": ROCE_datum['OM'],
+                        "category_index": this['color_index']
+                    });
+                    return false;
+                    // diagram_data.push({tr: 10, mg: , category_index: });
+                }
+            });
         });
     }
 
@@ -33184,10 +33276,6 @@ $(document).ready(function () {
     }
 
 
-    function calculateVariations(retry_count) {
-    }
-
-
     function showLoading(to_show) {
         var is_hidden_now = $loading_overlay.is(":hidden");
 
@@ -33198,6 +33286,30 @@ $(document).ready(function () {
         }
     }
 
+    /*** Get Filters ***/
+    function getFilterFromSpans(wrapper_class_name, empty_return) {
+        var option_values = [];
+        $("div." + wrapper_class_name + ".option-wrapper .option.selected").each(function () {
+            option_values.push($(this).data('value'));
+        });
+
+        if (option_values.length === 0 && typeof empty_return !== "undefined") {
+            return empty_return;
+        }
+        return option_values;
+    }
+
+    function getOptionsWrapper() {
+        var countries = [].concat.apply([], getFilterFromSpans("region"));
+        var industry_filter = $('div.industry.option-wrapper select').val();
+        return {
+            'exchange': getFilterFromSpans("exchange", false),
+            'market_cap': getFilterFromSpans("cap", false),
+            'sector': getFilterFromSpans("sector", false),
+            'region': countries.length === 0 ? false : countries,
+            'industry': industry_filter ? industry_filter : false
+        };
+    }
 
     /**********************
      * Math Calculation
@@ -33228,6 +33340,7 @@ $(document).ready(function () {
         if (!diagram_data) {
             return false;
         }
+        console.log(diagram_data);
         console.info(Date.now() % 100000, "Ploting data");
         var outer_div_width = $graph_div.width();
         outer_width = Math.min(Math.max(outer_div_width, 500), 700);
@@ -33244,12 +33357,12 @@ $(document).ready(function () {
             .attr("height", height + margin.top + margin.bottom)
             .style("margin-left", ($("div.container").width() - outer_width) / 2);
 
-        x.domain([0, d3.max(diagram_data, function (d) {
-            return d['tr'];
-        })]);
-        y.domain([0, d3.max(diagram_data, function (d) {
-            return d['mg'];
-        })]);
+        x.domain(d3.extent(diagram_data, function (d) {
+            return d['TR'];
+        }));
+        y.domain(d3.extent(diagram_data, function (d) {
+            return d['OM'];
+        }));
 
         var t = d3.transition()
             .duration(350);
@@ -33314,10 +33427,10 @@ $(document).ready(function () {
             })
             .transition(t)
             .attr("cx", function (d) {
-                return x(d['tr']);
+                return x(d['TR']);
             })
             .attr("cy", function (d) {
-                return y(d['mg']);
+                return y(d['OM']);
             })
             .attr("fill", function (d) {
                 return color_scale(d['category_index']);
