@@ -41,7 +41,16 @@ span#title {
     font-family: Anton, monospace;
 }
 
-.color-legend-select-wrapper .form-control {
+.year-select-wrapper {
+    padding-left: 14px;
+}
+
+.color-legend-select-wrapper, .year-select-wrapper {
+    width: 49.5%;
+    display: inline-block;
+}
+
+.color-legend-select-wrapper .form-control, .year-select-wrapper .form-control {
     max-width: 173px;
 }
 

@@ -32959,9 +32959,11 @@ window.math_func = math_func;
 $(document).ready(function () {
     var $loading_overlay = $("div.loading"),
         $color_legend_select = $("#color-legend-select"),
+        $year_select = $("#year-select"),
         $graph_div = $("#graphDiv"),
         diagram_data = [],
         exchange_list = [],
+        year_list = [],
         market_cap_list = [],
         region_list = [],
         sector_list = [],
@@ -33075,6 +33077,9 @@ $(document).ready(function () {
             });
             $('.industry .selectpicker').selectpicker('refresh');
 
+            // init year
+            updateYearOptions(true);
+
             // init color legend
             updateDiagramWrapper();
 
@@ -33088,6 +33093,11 @@ $(document).ready(function () {
 
             // legend select
             $color_legend_select.on('hidden.bs.select', function (e) {
+                updateDiagramWrapper();
+            });
+
+            // year select
+            $year_select.on('hidden.bs.select', function (e) {
                 updateDiagramWrapper();
             });
 
@@ -33262,30 +33272,38 @@ $(document).ready(function () {
 
         if (matched_companies.length === 0) return false;
 
+        var selected_year = $year_select.val();
+        year_list = []; // update year_list
         $.each(ROCE_data, function () {
             var ROCE_datum = this;
-            // console.log(ROCE_datum);
+            var year = this['Y'].toString();
 
-            if (ROCE_datum['Y'] !== 2016) return;
+            // console.log(ROCE_datum);
 
             // if (ROCE_datum['TR'] > 5 || ROCE_datum['TR'] < 0) return;
             // if (ROCE_datum['OM'] > 40 || ROCE_datum['OM'] < 0) return;
             /***test****/
-
-
             $.each(matched_companies, function () {
                 // console.log("matched company", this);
                 if (this['company_id'] === ROCE_datum['cId']) {
-                    diagram_data.push({
-                        "TR": ROCE_datum['TR'],
-                        "OM": ROCE_datum['OM'],
-                        "category_index": this['color_index']
-                    });
+                    if (year_list.indexOf(year) === -1) {
+                        year_list.push(year);
+                    }
+
+                    if (!selected_year || year === selected_year) {
+                        diagram_data.push({
+                            "TR": ROCE_datum['TR'],
+                            "OM": ROCE_datum['OM'],
+                            "category_index": this['color_index']
+                        });
+                    }
+
                     return false;
-                    // diagram_data.push({tr: 10, mg: , category_index: });
                 }
             });
         });
+
+        updateYearOptions();
     }
 
     function updateColorScale(color_count) {
@@ -33295,6 +33313,33 @@ $(document).ready(function () {
             color_scale = d3.scaleOrdinal(d3_sale_chromatic.schemePaired);
         } else {
             color_scale = d3.scaleOrdinal(d3.schemeCategory10);
+        }
+    }
+
+    function updateYearOptions(do_init) {
+        if (do_init) {
+            $.each(ROCE_data, function () {
+                // update year_list
+                var year = this['Y'].toString();
+                if (year_list.indexOf(year) === -1) {
+                    year_list.push(year);
+                }
+            });
+        }
+        year_list = year_list.sort().reverse();
+        var selected_year = $year_select.val();
+        $year_select.empty();
+        $.each(year_list, function () {
+            var $option = $('<option></option>').prop("value", this).text(this);
+            $year_select.append($option);
+        });
+        if(year_list.indexOf(selected_year)>-1) {
+            $year_select.val(selected_year);
+            $year_select.selectpicker('refresh');
+        } else {
+            $year_select.val(year_list[0]);
+            $year_select.selectpicker('refresh');
+            updateDiagramWrapper();
         }
     }
 
