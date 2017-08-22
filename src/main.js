@@ -323,6 +323,7 @@ $(document).ready(function () {
             /** Now we have valid companies **/
             matched_companies.push({
                 'company_id': this['id'],
+                'symbol': this['symbol'],
                 'color_index': color_index
             });
         });
@@ -354,7 +355,8 @@ $(document).ready(function () {
                             "TR": ROCE_datum['TR'],
                             "OM": ROCE_datum['OM'],
                             "category_index": this['color_index'],
-                            "company_id": this['company_id']
+                            "company_id": this['company_id'],
+                            "symbol": this['symbol']
                         });
                     }
 
@@ -465,7 +467,7 @@ $(document).ready(function () {
         .attr("class", "d3-tip")
         .offset([-8, 0])
         .html(function (d) {
-            return "OM: " + d['OM'] + ", TR: " + d['TR'] + ", cId: " + d['company_id'];
+            return "OM: " + d['OM'] + ", TR: " + d['TR'] + ", " + d['symbol'];
         });
     svg.call(tool_tip);
 
