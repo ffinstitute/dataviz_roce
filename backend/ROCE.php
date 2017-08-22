@@ -12,7 +12,19 @@ class ROCE
 
     function __construct()
     {
-        $credential = parse_ini_file(__DIR__ . "/credential.ini", true);
+        $credential_paths = [__DIR__ . "/credential.ini", __DIR__ . "/credential.default.ini"];
+
+        foreach ($credential_paths as $credential_path) {
+            if (file_exists($credential_path)) {
+                $credential = parse_ini_file($credential_path, true);
+            } else {
+                continue;
+            }
+        }
+
+        if (empty($credential)) throw new \Exception("Missing credential files");
+
+
         $db_credential = $credential['database'];
 
         $this->db = new \PDO("mysql:host={$db_credential['host']};dbname={$db_credential['database']};charset=utf8",
