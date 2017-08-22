@@ -3,9 +3,8 @@ window.$ = window.jQuery = require('jquery');
 require("bootstrap");
 require('bootstrap-select');
 
-var d3 = require("d3"),
-    d3_sale_chromatic = require("d3-scale-chromatic");
-
+var d3 = require("d3");
+d3.schemePaired = require("d3-scale-chromatic").schemePaired;
 d3.tip = require("d3-tip");
 
 // console.log(math_func);
@@ -371,7 +370,7 @@ $(document).ready(function () {
         if (color_count > 12) {
             color_scale = d3.scaleOrdinal(d3.schemeCategory20);
         } else if (color_count > 10) {
-            color_scale = d3.scaleOrdinal(d3_sale_chromatic.schemePaired);
+            color_scale = d3.scaleOrdinal(d3.schemePaired);
         } else {
             color_scale = d3.scaleOrdinal(d3.schemeCategory10);
         }
