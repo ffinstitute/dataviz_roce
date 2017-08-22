@@ -4,14 +4,12 @@ require("bootstrap");
 require('bootstrap-select');
 
 var d3 = require("d3"),
-    math_func = require('./math_func.js'),
     d3_sale_chromatic = require("d3-scale-chromatic");
 
 // console.log(math_func);
 
 // dev env #TODO: remove these lines
 window.d3 = d3;
-window.math_func = math_func;
 
 $(document).ready(function () {
     var $loading_overlay = $("div.loading"),
