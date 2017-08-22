@@ -140,6 +140,10 @@ span.option.selected, span.option-activate-demo {
     display: none;
 }
 
+circle.dot {
+    fill-opacity: 0.65;
+}
+
 /**
 * Loading overlay
  */

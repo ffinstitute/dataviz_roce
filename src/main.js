@@ -248,15 +248,15 @@ $(document).ready(function () {
             // filter out by market cap
             var market_cap_options = options['market_cap'];
             if (market_cap_options) {
-                var cap_matched = false,
-                    company_cap = this['market_cap'];
-                $.each(market_cap_options, function () {
+                var company_cap = this['market_cap'],
+                    cap_matched_index = -1;
+                $.each(market_cap_options, function (option_index) {
                     if ((this[0] && this[0] > company_cap) || (this[1] && this[1] <= company_cap)) {
                         return;
                     }
-                    cap_matched = true;
+                    cap_matched_index = option_index;
                 });
-                if (!cap_matched) {
+                if (cap_matched_index < 0) {
                     return;
                 }
             }
@@ -267,10 +267,22 @@ $(document).ready(function () {
                 return;
             }
 
-            // filter out by country
-            var country_options = options['region'];
-            if (country_options && country_options.indexOf(this['country']) < 0) {
-                return;
+            // filter out by region
+            var region_options = options['region'];
+            if (region_options) {
+                // var country_list = [].concat.apply([], region_options);
+                var region_matched_index = -1;
+                var company_country = this['country'];
+                $.each(region_options, function (region_index) {
+                    if (this.indexOf(company_country) > -1) {
+                        // matched
+                        region_matched_index = region_index;
+                        return false;
+                    }
+                });
+                if (region_matched_index < 0) {
+                    return;
+                }
             }
 
             // filter out by industry
@@ -279,10 +291,27 @@ $(document).ready(function () {
                 return;
             }
 
+            var color_index = -1;
+
+            switch (color_legend) {
+                case 'exchange':
+                case 'sector':
+                    color_index = options_on_legend.indexOf(this[color_legend]);
+                    break;
+
+                case 'market_cap':
+                    color_index = cap_matched_index;
+                    break;
+
+                case 'region':
+                    color_index = region_matched_index;
+                    break;
+            }
+
             /** Now we have valid companies **/
             matched_companies.push({
                 'company_id': this['id'],
-                'color_index': options_on_legend.indexOf(this[color_legend])
+                'color_index': color_index
             });
         });
 
@@ -296,8 +325,8 @@ $(document).ready(function () {
 
             if (ROCE_datum['Y'] !== 2016) return;
 
-            if (Math.abs(ROCE_datum['TR']) > 5) return;
-            if (Math.abs(ROCE_datum['OM']) > 100) return;
+            // if (ROCE_datum['TR'] > 5 || ROCE_datum['TR'] < 0) return;
+            // if (ROCE_datum['OM'] > 40 || ROCE_datum['OM'] < 0) return;
             /***test****/
 
 
@@ -357,13 +386,12 @@ $(document).ready(function () {
     }
 
     function getOptionsWrapper() {
-        var countries = [].concat.apply([], getFilterFromSpans("region"));
         var industry_filter = $('div.industry.option-wrapper select').val();
         return {
             'exchange': getFilterFromSpans("exchange", false),
             'market_cap': getFilterFromSpans("cap", false),
             'sector': getFilterFromSpans("sector", false),
-            'region': countries.length === 0 ? false : countries,
+            'region': getFilterFromSpans("region", false),
             'industry': industry_filter ? industry_filter : false
         };
     }
