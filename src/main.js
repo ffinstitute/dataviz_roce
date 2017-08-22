@@ -6,6 +6,8 @@ require('bootstrap-select');
 var d3 = require("d3"),
     d3_sale_chromatic = require("d3-scale-chromatic");
 
+d3.tip = require("d3-tip");
+
 // console.log(math_func);
 
 // dev env #TODO: remove these lines
@@ -51,7 +53,10 @@ $(document).ready(function () {
             ROCE_data = false;
             console.error(error);
         } else {
-            ROCE_data = data['ROCEs'];
+            ROCE_data = $.map(data['ROCEs'], function (datum) {
+                datum['Y'] = datum['Y'].toString();
+                return datum;
+            });
         }
     });
 
@@ -331,7 +336,7 @@ $(document).ready(function () {
         year_list = []; // update year_list
         $.each(ROCE_data, function () {
             var ROCE_datum = this;
-            var year = this['Y'].toString();
+            var year = this['Y'];
 
             // console.log(ROCE_datum);
 
@@ -349,7 +354,8 @@ $(document).ready(function () {
                         diagram_data.push({
                             "TR": ROCE_datum['TR'],
                             "OM": ROCE_datum['OM'],
-                            "category_index": this['color_index']
+                            "category_index": this['color_index'],
+                            "company_id": this['company_id']
                         });
                     }
 
@@ -375,7 +381,7 @@ $(document).ready(function () {
         if (do_init) {
             $.each(ROCE_data, function () {
                 // update year_list
-                var year = this['Y'].toString();
+                var year = this['Y'];
                 if (year_list.indexOf(year) === -1) {
                     year_list.push(year);
                 }
@@ -388,7 +394,7 @@ $(document).ready(function () {
             var $option = $('<option></option>').prop("value", this).text(this);
             $year_select.append($option);
         });
-        if(year_list.indexOf(selected_year)>-1) {
+        if (year_list.indexOf(selected_year) > -1) {
             $year_select.val(selected_year);
             $year_select.selectpicker('refresh');
         } else {
@@ -455,6 +461,14 @@ $(document).ready(function () {
     // append svg
     var svg = d3.select("#graphDiv svg"),
         g = svg.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+    var tool_tip = d3.tip()
+        .attr("class", "d3-tip")
+        .offset([-8, 0])
+        .html(function (d) {
+            return "OM: " + d['OM'] + ", TR: " + d['TR'] + ", cId: " + d['company_id'];
+        });
+    svg.call(tool_tip);
 
     // Add Axis
     g.append("g").attr("class", "grid x-grid");
@@ -525,33 +539,16 @@ $(document).ready(function () {
             .attr("class", "dot")
             .merge(dots)
             .on("mouseover", function (d) {
-                var $tooltip = $("#tooltip");
-                var tooltip_left = parseFloat(d3.select(this).attr("cx")) + $graph_div.position()['left']
-                    + $tooltip.width() / 2 + 72 + parseFloat($graph_div.find("svg").css("margin-left"));
-                var tooltip_top = parseFloat(d3.select(this).attr("cy")) + $graph_div.position()['top']
-                    - $tooltip.height() / 2 - 73;
-
-                if (tooltip_left > width - 100) {
-                    // might exceed right side of screen, switch to left
-                    tooltip_left -= 179;
-                }
+                tool_tip.show(d);
 
                 // handle dot
                 d3.select(this).attr("r", dot_radius * 2.5).classed("hover", true);
-
-                // handle tooltip
-                var tooltip = d3.select("#tooltip")
-                    .style("left", tooltip_left + "px")
-                    .style("top", tooltip_top + "px")
-                    .classed("hidden", false);
-
             })
             .on("mouseout", function () {
                 // handle dot
                 d3.select(this).attr("r", dot_radius).classed("hover", false);
 
-                // hide tooltip
-                d3.select("#tooltip").classed("hidden", true);
+                tool_tip.hide();
             })
             .transition(t)
             .attr("cx", function (d) {

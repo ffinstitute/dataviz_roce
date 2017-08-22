@@ -153,6 +153,15 @@ circle.dot {
     fill-opacity: 0.65;
 }
 
+.d3-tip {
+    line-height: 1;
+    padding: 6px;
+    background: rgba(0, 0, 0, 0.8);
+    color: #fff;
+    border-radius: 4px;
+    font-size: 12px;
+}
+
 /**
 * Loading overlay
  */
