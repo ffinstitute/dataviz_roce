@@ -162,6 +162,11 @@ circle.dot {
     font-size: 12px;
 }
 
+.axis-label {
+    fill: #555555;
+    font-size: 12px;
+}
+
 /**
 * Loading overlay
  */

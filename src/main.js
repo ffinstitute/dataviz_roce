@@ -474,8 +474,21 @@ $(document).ready(function () {
     // Add Axis
     g.append("g").attr("class", "grid x-grid");
     g.append("g").attr("class", "grid y-grid");
-    g.append("g").attr("class", "axis x-axis").attr("transform", "translate(0," + height + ")");
+    g.append("g").attr("class", "axis x-axis").attr("transform", "translate(0," + (height - 4) + ")");
     g.append("g").attr("class", "axis y-axis");
+
+
+    // Add axis label
+    g.append("text")
+        .attr("class", "axis-label x hidden")
+        .style("text-anchor", "middle")
+        .text("Turnover Ratio");
+    g.append("text")
+        .attr("class", "axis-label y hidden")
+        .attr("transform", "rotate(-90)")
+        .style("text-anchor", "middle")
+        .attr("dy", "1em")
+        .text("Margin");
 
     /**** Initiated ****/
 
@@ -574,5 +587,19 @@ $(document).ready(function () {
         g.select(".y-axis")
             .transition(t)
             .call(d3.axisLeft(y));
+
+        // text label for axis
+        g.select(".axis-label.x")
+            .classed("hidden", false)
+            .transition(t)
+            .attr("transform",
+                "translate(" + (width / 2) + " ," +
+                (height + margin.top + 5) + ")");
+
+        g.select(".axis-label.y")
+            .classed("hidden", false)
+            .transition(t)
+            .attr("y", 12 - margin.left - Math.round(y.domain()[1]).toString().length * 4)
+            .attr("x", -(height / 2));
     }
 });
