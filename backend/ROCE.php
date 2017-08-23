@@ -26,7 +26,8 @@ class ROCE
 
         $db_credential = $credential['database'];
 
-        $this->db = new \PDO("mysql:host={$db_credential['host']};dbname={$db_credential['database']};charset=utf8",
+
+        $this->db = new \PDO("mysql:host={$db_credential['host']};port={$db_credential['port']};dbname={$db_credential['database']};charset=utf8",
             $db_credential['username'], $db_credential['password'],
             [PDO::ATTR_EMULATE_PREPARES => false, PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
     }
