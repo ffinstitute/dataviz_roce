@@ -54,8 +54,8 @@ span#title {
     max-width: 173px;
 }
 
-label {
-    display: block;
+.option-wrapper .label {
+    display: inline-block;
 }
 
 #options label {
