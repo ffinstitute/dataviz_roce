@@ -488,6 +488,7 @@ $(document).ready(function () {
     var outer_width, width, x, y, x_axis, y_axis,
         outer_height = 400,
         margin = {top: 20, right: 20, bottom: 30, left: 50},
+        padding = {top: 0, right: 0, bottom: 4, left: 0},
         height = outer_height - margin.top - margin.bottom,
         dot_radius = 4; //pixels
 
@@ -516,7 +517,7 @@ $(document).ready(function () {
     // Add Axis
     g.append("g").attr("class", "grid x-grid");
     g.append("g").attr("class", "grid y-grid");
-    g.append("g").attr("class", "axis x-axis").attr("transform", "translate(0," + (height - 4) + ")");
+    g.append("g").attr("class", "axis x-axis").attr("transform", "translate(0," + (height - padding.bottom) + ")");
     g.append("g").attr("class", "axis y-axis");
 
 
@@ -545,7 +546,7 @@ $(document).ready(function () {
 
         width = outer_width - margin.left - margin.right;
         x = d3.scaleLinear().range([0, width]);
-        y = d3.scaleLinear().range([height, 0]);
+        y = d3.scaleLinear().range([height - padding.bottom, 0]);
         x_axis = d3.axisBottom(x);
         y_axis = d3.axisLeft(y).tickFormat(function (d) {
             return formatPercentageDisplay(d, 0, "");
