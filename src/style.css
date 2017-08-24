@@ -160,6 +160,7 @@ circle.dot {
     color: #fff;
     border-radius: 4px;
     font-size: 11px;
+    z-index: 999;
 }
 
 .axis-label {
