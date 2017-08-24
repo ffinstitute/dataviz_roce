@@ -45,9 +45,13 @@ class ROCE
         while ($item = $stmt->fetch(\PDO::FETCH_ASSOC)) {
 
             $ROCEs[] = [
+                'TRV' => $item['total_revenue'],
+                "TXR" => $item['tax_rate'],
+                'OI' => $item['operating_income'],
+                'CE' => $item['capital_employed'],
                 'TR' => round($item['turnover_ratio'], 2),
-                'OM' => round($item['operating_margin'], 4) * 100,
-                'RC' => round($item['ROCE'], 4) * 100,
+                'OM' => round($item['operating_margin'], 4),
+                'RC' => round($item['ROCE'], 4),
                 'Y' => $item['year'],
                 'cId' => $item['company_id']
             ];

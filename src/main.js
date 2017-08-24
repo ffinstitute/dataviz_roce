@@ -38,7 +38,7 @@ $(document).ready(function () {
 
 
     // load data
-    d3.json('backend?item=company_list', function (error, data) {
+    d3.json('backend/?item=company_list', function (error, data) {
         if (error) {
             company_data = false;
             console.error(error);
@@ -47,7 +47,7 @@ $(document).ready(function () {
         }
     });
 
-    d3.json('backend?item=ROCE_list', function (error, data) {
+    d3.json('backend/?item=ROCE_list', function (error, data) {
         if (error) {
             ROCE_data = false;
             console.error(error);
@@ -324,6 +324,7 @@ $(document).ready(function () {
             matched_companies.push({
                 'company_id': this['id'],
                 'symbol': this['symbol'],
+                'name': this['name'],
                 'color_index': color_index
             });
         });
@@ -351,13 +352,19 @@ $(document).ready(function () {
                     }
 
                     if (!selected_year || year === selected_year) {
-                        diagram_data.push({
+                        var diagram_datum = $.extend({}, ROCE_datum, this);
+                        /*diagram_data.push({
+                            "S": ROCE_datum['S'],
+                            "OI": ROCE_datum['OI'],
+                            "CE": ROCE_datum['CE'],
                             "TR": ROCE_datum['TR'],
                             "OM": ROCE_datum['OM'],
-                            "category_index": this['color_index'],
+                            "color_index": this['color_index'],
                             "company_id": this['company_id'],
-                            "symbol": this['symbol']
-                        });
+                            "symbol": this['symbol'],
+                            "name": this['name']
+                        });*/
+                        diagram_data.push(diagram_datum);
                     }
 
                     return false;
@@ -366,6 +373,37 @@ $(document).ready(function () {
         });
 
         updateYearOptions();
+    }
+
+    function formatPercentageDisplay(number, decimals, percent_sign) {
+        if (typeof decimals === "undefined") decimals = 2;
+        if (typeof percent_sign === "undefined") percent_sign = "%";
+
+        return (number * 100).toFixed(decimals) + percent_sign;
+    }
+
+    function formatIntDisplay(int, dollar_sign, separator, multiply_base) {
+        if (typeof dollar_sign === "undefined") dollar_sign = "$";
+        if (typeof separator === "undefined") separator = ",";
+        if (typeof multiply_base === "undefined") multiply_base = 1000;
+
+        int = int * multiply_base;
+
+        var strings = [];
+
+        if (int < 1000) {
+            strings = [int.toString()];
+        } else {
+            while (int >= 1000) {
+                strings.push(("00" + int % 1000).slice(-3));
+                int = Math.floor(int / 1000);
+            }
+        }
+
+        strings = strings.reverse();
+        strings[0] = Math.round(strings[0]);
+
+        return dollar_sign + strings.join(separator);
     }
 
     function updateColorScale(color_count) {
@@ -446,13 +484,8 @@ $(document).ready(function () {
         };
     }
 
-    /**********************
-     * Math Calculation
-     */
-
-
     /****** Initiate ******/
-    var outer_width, width, x, y,
+    var outer_width, width, x, y, x_axis, y_axis,
         outer_height = 400,
         margin = {top: 20, right: 20, bottom: 30, left: 50},
         height = outer_height - margin.top - margin.bottom,
@@ -465,9 +498,18 @@ $(document).ready(function () {
 
     var tool_tip = d3.tip()
         .attr("class", "d3-tip")
-        .offset([-8, 0])
+        .direction('s')
+        .offset([8, 0])
         .html(function (d) {
-            return "OM: " + d['OM'] + ", TR: " + d['TR'] + ", " + d['symbol'];
+            return "<table><tbody><tr><th colspan='2'>" + d['name'] + " (" + d['symbol'] + ")</th></tr>"
+                + "<tr><th>" + "Total Revenue" + "</th><td>" + formatIntDisplay(d['TRV']) + "</td></tr>"
+                + "<tr><th>" + "Tax Rate" + "</th><td>" + formatPercentageDisplay(d['TXR']) + "</td></tr>"
+                + "<tr><th>" + "Operating Income" + "</th><td>" + formatIntDisplay(d['OI']) + "</td></tr>"
+                + "<tr><th>" + "Capital Employed" + "</th><td>" + formatIntDisplay(d['CE']) + "</td></tr>"
+                + "<tr><th>" + "Turnover Ratio" + "</th><td>" + d['TR'] + "</td></tr>"
+                + "<tr><th>" + "Operating Margin" + "</th><td>" + formatPercentageDisplay(d['OM']) + "</td></tr>"
+                + "<tr><th>" + "ROCE" + "</th><td>" + formatPercentageDisplay(d['RC']) + "</td></tr>"
+                + "</tbody></table>";
         });
     svg.call(tool_tip);
 
@@ -488,7 +530,7 @@ $(document).ready(function () {
         .attr("transform", "rotate(-90)")
         .style("text-anchor", "middle")
         .attr("dy", "1em")
-        .text("Margin");
+        .text("Margin(%)");
 
     /**** Initiated ****/
 
@@ -504,6 +546,10 @@ $(document).ready(function () {
         width = outer_width - margin.left - margin.right;
         x = d3.scaleLinear().range([0, width]);
         y = d3.scaleLinear().range([height, 0]);
+        x_axis = d3.axisBottom(x);
+        y_axis = d3.axisLeft(y).tickFormat(function (d) {
+            return formatPercentageDisplay(d, 0, "");
+        });
 
         // console.log(data);
         // g.selectAll("circle").remove();
@@ -549,7 +595,7 @@ $(document).ready(function () {
 
         dots.classed("update", true)
             .attr("fill", function (d) {
-                return color_scale(d['category_index']);
+                return color_scale(d['color_index']);
             });
 
         dots.enter().append("circle")
@@ -576,17 +622,17 @@ $(document).ready(function () {
                 return y(d['OM']);
             })
             .attr("fill", function (d) {
-                return color_scale(d['category_index']);
+                return color_scale(d['color_index']);
             });
 
         // Update Axis
         g.select(".x-axis")
             .transition(t)
-            .call(d3.axisBottom(x));
+            .call(x_axis);
 
         g.select(".y-axis")
             .transition(t)
-            .call(d3.axisLeft(y));
+            .call(y_axis);
 
         // text label for axis
         g.select(".axis-label.x")

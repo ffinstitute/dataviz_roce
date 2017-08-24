@@ -154,12 +154,12 @@ circle.dot {
 }
 
 .d3-tip {
-    line-height: 1;
+    line-height: 1.3;
     padding: 6px;
     background: rgba(0, 0, 0, 0.8);
     color: #fff;
     border-radius: 4px;
-    font-size: 12px;
+    font-size: 11px;
 }
 
 .axis-label {
