@@ -398,6 +398,9 @@ $(document).ready(function () {
                 strings.push(("00" + int % 1000).slice(-3));
                 int = Math.floor(int / 1000);
             }
+            if (int > 0) {
+                strings.push(int);
+            }
         }
 
         strings = strings.reverse();
