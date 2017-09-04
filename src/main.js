@@ -16,7 +16,11 @@ $(document).ready(function () {
     var $loading_overlay = $("div.loading"),
         $color_legend_select = $("#color-legend-select"),
         $year_select = $("#year-select"),
+        $range_switch = $("#range-switch"),
+        $shade_switch = $("#shade-switch"),
         $graph_div = $("#graphDiv"),
+        shade_on = true,
+        optimized_range_on = true,
         diagram_data = [],
         exchange_list = [],
         year_list = [],
@@ -24,14 +28,18 @@ $(document).ready(function () {
         region_list = [],
         sector_list = [],
         industry_dict = {},
-        company_data, ROCE_data, graph_div_width, config, color_scale;
+        company_data, ROCE_data, graph_div_width, config, color_scale,
+        optimized_range = {
+            'TR': [0, 5],
+            'OM': [0, 0.25]
+        };
 
 
     // listeners
     $(window).resize(function () {
         var new_graph_div_width = $graph_div.width();
         if (new_graph_div_width !== graph_div_width) {
-            plotDiagram(diagram_data);
+            plotDiagram();
             graph_div_width = new_graph_div_width;
         }
     });
@@ -143,6 +151,14 @@ $(document).ready(function () {
             updateDiagramWrapper();
 
             /** add listeners **/
+            $range_switch.on("change", function () {
+                optimized_range_on = $range_switch.prop("checked");
+                updateDiagramWrapper();
+            });
+            $shade_switch.on("change", function () {
+                shade_on = $shade_switch.prop("checked");
+                updateDiagramWrapper();
+            });
             // span click
             $("span.option").click(function () {
                 $(this).toggleClass("selected");
@@ -341,8 +357,10 @@ $(document).ready(function () {
 
             // console.log(ROCE_datum);
 
-            // if (ROCE_datum['TR'] > 5 || ROCE_datum['TR'] < 0) return;
-            // if (ROCE_datum['OM'] > 40 || ROCE_datum['OM'] < 0) return;
+            if (optimized_range_on) {
+                if (ROCE_datum['TR'] > optimized_range['TR'][1] || ROCE_datum['TR'] < optimized_range['TR'][0]) return;
+                if (ROCE_datum['OM'] > optimized_range['OM'][1] || ROCE_datum['OM'] < optimized_range['OM'][0]) return;
+            }
             /***test****/
             $.each(matched_companies, function () {
                 // console.log("matched company", this);
@@ -353,17 +371,6 @@ $(document).ready(function () {
 
                     if (!selected_year || year === selected_year) {
                         var diagram_datum = $.extend({}, ROCE_datum, this);
-                        /*diagram_data.push({
-                            "S": ROCE_datum['S'],
-                            "OI": ROCE_datum['OI'],
-                            "CE": ROCE_datum['CE'],
-                            "TR": ROCE_datum['TR'],
-                            "OM": ROCE_datum['OM'],
-                            "color_index": this['color_index'],
-                            "company_id": this['company_id'],
-                            "symbol": this['symbol'],
-                            "name": this['name']
-                        });*/
                         diagram_data.push(diagram_datum);
                     }
 
@@ -536,12 +543,17 @@ $(document).ready(function () {
         .attr("dy", "1em")
         .text("Margin(%)");
 
+    // Add shade area
+    g.append("path")
+        .attr("class", "shade-area");
+
     /**** Initiated ****/
 
     function plotDiagram() {
         if (!diagram_data) {
             return false;
         }
+
         console.log(diagram_data);
         console.info(Date.now() % 100000, "Ploting data");
         var outer_div_width = $graph_div.width();
@@ -563,16 +575,23 @@ $(document).ready(function () {
             .attr("height", height + margin.top + margin.bottom)
             .style("margin-left", ($("div.container").width() - outer_width) / 2);
 
-        x.domain([d3.min(diagram_data, function (d) {
-            return d['TR'] > 0 ? 0 : d['TR'];
-        }), d3.max(diagram_data, function (d) {
-            return d['TR'];
-        })]);
-        y.domain([d3.min(diagram_data, function (d) {
-            return d['OM'] > 0 ? 0 : d['OM'];
-        }), d3.max(diagram_data, function (d) {
-            return d['OM'];
-        })]);
+
+        // update according to range switch
+        if (optimized_range_on) {
+            x.domain(optimized_range['TR']);
+            y.domain(optimized_range['OM']);
+        } else {
+            x.domain([d3.min(diagram_data, function (d) {
+                return d['TR'] > 0 ? 0 : d['TR'];
+            }), d3.max(diagram_data, function (d) {
+                return d['TR'];
+            })]);
+            y.domain([d3.min(diagram_data, function (d) {
+                return d['OM'] > 0 ? 0 : d['OM'];
+            }), d3.max(diagram_data, function (d) {
+                return d['OM'];
+            })]);
+        }
 
         var t = d3.transition()
             .duration(350);
@@ -651,5 +670,31 @@ $(document).ready(function () {
             .transition(t)
             .attr("y", 12 - margin.left - Math.round(y.domain()[1]).toString().length * 4)
             .attr("x", -(height / 2));
+
+        // Update shade area
+        if (shade_on) {
+            var shade_data = [];
+            for (var xx = 1e-1; xx <= x.domain()[1]; xx += 1e-1) {
+                shade_data.push({
+                    x: xx,
+                    y1: 0.15 / xx,
+                    y2: 0.2 / xx
+                })
+            }
+            d3.select(".shade-area")
+                .data([shade_data])
+                .classed("hidden", false)
+                .attr("d", d3.area().x(function (d) {
+                    return x(d['x']);
+                }).y0(function (d) {
+                    return y(d['y1'])
+                }).y1(function (d) {
+                    return y(d['y2']);
+                }));
+        } else {
+            d3.select(".shade-area").classed("hidden", true);
+        }
+
+
     }
 });
