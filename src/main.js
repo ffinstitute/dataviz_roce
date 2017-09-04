@@ -14,6 +14,7 @@ window.d3 = d3;
 
 $(document).ready(function () {
     var $loading_overlay = $("div.loading"),
+        $company_select = $("#company-select"),
         $color_legend_select = $("#color-legend-select"),
         $year_select = $("#year-select"),
         $range_switch = $("#range-switch"),
@@ -76,17 +77,24 @@ $(document).ready(function () {
         console.error(error);
     });
 
-    initOptions();
+    init();
 
     // functions
 
 
-    function initOptions() {
+    function init() {
         // Is data ready?
         if (company_data && ROCE_data && config) {
             console.info("Initiating");
             // console.log(ROCE_data);
+            // get array of companies(id) with ROCE data
+            var company_ids = [];
+            $.each(ROCE_data, function (i, datum) {
+                var company_id = datum['cId'];
+                if (company_ids.indexOf(company_id) === -1) company_ids.push(company_id);
+            });
 
+            console.log(company_ids);
             // prepare company_data by inserting exchange value
             company_data = $.grep($.map(company_data, function (datum1) {
                 // console.log(datum);
@@ -103,8 +111,22 @@ $(document).ready(function () {
                 industry_dict[industry] = sector;
                 return datum1;
             }), function (datum) {
-                return datum !== false;
+                return datum !== false && company_ids.indexOf(datum['id']) > -1;
             });
+
+
+            // init company select
+            $.each(company_data, function (i, company) {
+                var $option = $('<option value="' + company['symbol'] + '">' + company['name'] + " (" + company['symbol'] + ")" + '</option>')
+                    .data({
+                        'sector': company['sector'],
+                        'exchange': company['exchange'],
+                        'market_cap': company['market_cap'],
+                        'tokens': company['name'] + " " + company['symbol']
+                    });
+                $company_select.append($option);
+            });
+            $company_select.selectpicker('refresh');
 
             // init exchange options
             $.each(exchange_list, function (i, exchange) {
@@ -151,16 +173,28 @@ $(document).ready(function () {
             updateDiagramWrapper();
 
             /** add listeners **/
-            $range_switch.on("change", function () {
-                optimized_range_on = $range_switch.prop("checked");
+            $range_switch.on("mouseup", function () {
+                optimized_range_on = $range_switch.hasClass("selected");
                 updateDiagramWrapper();
             });
-            $shade_switch.on("change", function () {
-                shade_on = $shade_switch.prop("checked");
+            $shade_switch.on("mouseup", function () {
+                shade_on = $shade_switch.hasClass("selected");
                 updateDiagramWrapper();
             });
+
+            // company select
+            $company_select.on("input change", function () {
+                var option_data = $(this).find("option:selected").data();
+                selectExchange(option_data['exchange']);
+                selectCap(option_data['market_cap']);
+                selectSector(option_data['sector']);
+                selectRegion(option_data['country']);
+
+                updateDiagramWrapper();
+            });
+
             // span click
-            $("span.option").click(function () {
+            $("span.option").on("mousedown", function () {
                 $(this).toggleClass("selected");
                 updateDiagramWrapper();
                 updateClearAllButtons();
@@ -187,11 +221,8 @@ $(document).ready(function () {
             $('div.industry.option-wrapper select').on("input change", function () {
                 var sector_name = $(this).find("option:selected").data('sector');
 
-                $(".sector.option-wrapper span").each(function () {
-                    $(this).toggleClass("selected", $(this).data('value') === sector_name);
-                }); // select sector according to industry
+                selectSector(sector_name);
                 updateDiagramWrapper();
-                updateClearAllButtons();
             });
 
 
@@ -199,12 +230,49 @@ $(document).ready(function () {
             // deal with load error
             alert("Something went wrong. See console log for details.");
         } else {
-            return setTimeout(initOptions, 100);
+            return setTimeout(init, 100);
         }
     }
 
-    function updateClearAllButtons() {
-        $(".option-wrapper").each(function () {
+    /*** programmatically select options ***/
+    function selectExchange(exchange_name) {
+        var $wrapper = $(".exchange.option-wrapper");
+        $wrapper.find("span.option").each(function () {
+            $(this).toggleClass("selected", $(this).data('value') === exchange_name);
+        });
+        updateClearAllButtons($wrapper);
+    }
+
+    function selectCap(market_cap) {
+        var $wrapper = $(".cap.option-wrapper");
+        $wrapper.find("span.option").each(function () {
+            $(this).toggleClass("selected", function () {
+                var range = $(this).data('value');
+                return (!range[0] || range[0] < market_cap) && (!range[1] || market_cap < range[1]);
+            });
+        });
+        updateClearAllButtons($wrapper);
+    }
+
+    function selectSector(sector_name) {
+        var $wrapper = $(".sector.option-wrapper");
+        $wrapper.find("span.option").each(function () {
+            $(this).toggleClass("selected", $(this).data('value') === sector_name);
+        });
+        updateClearAllButtons($wrapper);
+    }
+
+    function selectRegion(region_name) {
+        var $wrapper = $(".region.option-wrapper");
+        $wrapper.find("span.option").each(function () {
+            $(this).toggleClass("selected", $(this).data('value').indexOf(region_name) > -1);
+        });
+        updateClearAllButtons($wrapper);
+    }
+
+    function updateClearAllButtons($wrapper) {
+        if (!$wrapper) $wrapper = $(".option-wrapper");
+        $wrapper.each(function () {
             var $wrapper = $(this);
             $wrapper.find(".clear-button").toggleClass("invisible", $wrapper.find('.option.selected').length === 0);
         });
@@ -215,9 +283,9 @@ $(document).ready(function () {
             .prepend("<div class='color-legend-rect'></div>");
     }
 
-    function updateDiagramWrapper() {
+    function updateDiagramWrapper(skip_update_year) {
         updateColorLegend();
-        updateDiagramData();
+        updateDiagramData(skip_update_year);
         plotDiagram();
     }
 
@@ -251,89 +319,88 @@ $(document).ready(function () {
         $selected_options.each(updateOptionLegendColor);
     }
 
-    function updateDiagramData() {
+    function updateDiagramData(skip_update_year) {
         diagram_data = [];
 
-        var options = getOptionsWrapper();
-        var color_legend = $color_legend_select.val();
-        var options_on_legend = options[color_legend];
+        var options = getOptionsWrapper(),
+            color_legend = $color_legend_select.val(),
+            options_on_legend = options[color_legend],
+            matched_companies = [],
+            exchange_options = options['exchange'],
+            market_cap_options = options['market_cap'],
+            sector_options = options['sector'],
+            region_options = options['region'],
+            industry_options = options['industry'],
+            selected_company_symbol = $company_select.val();
 
-        /** test block ***/
-        // console.log("options", options);
-        // console.log("legend", color_legend);
-        // console.log("legend options", options[color_legend]);
-        if (!options_on_legend) return false;
-        /*** end of test block ***/
-
-        var matched_companies = [];
         $.each(company_data, function () {
-            // filter out by exchange
-            var exchange_options = options['exchange'];
-            if (exchange_options && exchange_options.indexOf(this['exchange']) < 0) {
-                return;
-            }
+            // filter by single company selection
+            if (selected_company_symbol) {
+                if (this['symbol'] !== selected_company_symbol) return;
+            } else {
+                // filter by exchange
+                if (exchange_options && exchange_options.indexOf(this['exchange']) < 0) {
+                    return;
+                }
 
-            // filter out by market cap
-            var market_cap_options = options['market_cap'];
-            if (market_cap_options) {
-                var company_cap = this['market_cap'],
-                    cap_matched_index = -1;
-                $.each(market_cap_options, function (option_index) {
-                    if ((this[0] && this[0] > company_cap) || (this[1] && this[1] <= company_cap)) {
+                // filter by market cap
+                if (market_cap_options) {
+                    var company_cap = this['market_cap'],
+                        cap_matched_index = -1;
+                    $.each(market_cap_options, function (option_index) {
+                        if ((this[0] && this[0] > company_cap) || (this[1] && this[1] <= company_cap)) {
+                            return;
+                        }
+                        cap_matched_index = option_index;
+                    });
+                    if (cap_matched_index < 0) {
                         return;
                     }
-                    cap_matched_index = option_index;
-                });
-                if (cap_matched_index < 0) {
+                }
+
+                // filter by sector
+                if (sector_options && sector_options.indexOf(this['sector']) < 0) {
                     return;
                 }
-            }
 
-            // filter out by sector
-            var sector_options = options['sector'];
-            if (sector_options && sector_options.indexOf(this['sector']) < 0) {
-                return;
-            }
-
-            // filter out by region
-            var region_options = options['region'];
-            if (region_options) {
-                // var country_list = [].concat.apply([], region_options);
-                var region_matched_index = -1;
-                var company_country = this['country'];
-                $.each(region_options, function (region_index) {
-                    if (this.indexOf(company_country) > -1) {
-                        // matched
-                        region_matched_index = region_index;
-                        return false;
+                // filter by region
+                if (region_options) {
+                    // var country_list = [].concat.apply([], region_options);
+                    var region_matched_index = -1;
+                    var company_country = this['country'];
+                    $.each(region_options, function (region_index) {
+                        if (this.indexOf(company_country) > -1) {
+                            // matched
+                            region_matched_index = region_index;
+                            return false;
+                        }
+                    });
+                    if (region_matched_index < 0) {
+                        return;
                     }
-                });
-                if (region_matched_index < 0) {
+                }
+
+                // filter by industry
+                if (industry_options && industry_options.indexOf(this['industry']) < 0) {
                     return;
                 }
-            }
 
-            // filter out by industry
-            var industry_options = options['industry'];
-            if (industry_options && industry_options.indexOf(this['industry']) < 0) {
-                return;
-            }
+                var color_index = -1;
 
-            var color_index = -1;
+                switch (color_legend) {
+                    case 'exchange':
+                    case 'sector':
+                        if (options_on_legend) color_index = options_on_legend.indexOf(this[color_legend]);
+                        break;
 
-            switch (color_legend) {
-                case 'exchange':
-                case 'sector':
-                    color_index = options_on_legend.indexOf(this[color_legend]);
-                    break;
+                    case 'market_cap':
+                        color_index = cap_matched_index;
+                        break;
 
-                case 'market_cap':
-                    color_index = cap_matched_index;
-                    break;
-
-                case 'region':
-                    color_index = region_matched_index;
-                    break;
+                    case 'region':
+                        color_index = region_matched_index;
+                        break;
+                }
             }
 
             /** Now we have valid companies **/
@@ -379,7 +446,7 @@ $(document).ready(function () {
             });
         });
 
-        updateYearOptions();
+        if (!skip_update_year) updateYearOptions();
     }
 
     function formatPercentageDisplay(number, decimals, percent_sign) {
@@ -421,8 +488,10 @@ $(document).ready(function () {
             color_scale = d3.scaleOrdinal(d3.schemeCategory20);
         } else if (color_count > 10) {
             color_scale = d3.scaleOrdinal(d3.schemePaired);
-        } else {
+        } else if (color_count > 0) {
             color_scale = d3.scaleOrdinal(d3.schemeCategory10);
+        } else {
+            color_scale = d3.scaleOrdinal(["#777777"]);
         }
     }
 
@@ -449,7 +518,7 @@ $(document).ready(function () {
         } else {
             $year_select.val(year_list[0]);
             $year_select.selectpicker('refresh');
-            updateDiagramWrapper();
+            updateDiagramWrapper(true);
         }
     }
 
@@ -497,7 +566,7 @@ $(document).ready(function () {
     /****** Initiate ******/
     var outer_width, width, x, y, x_axis, y_axis,
         outer_height = 400,
-        margin = {top: 20, right: 20, bottom: 30, left: 50},
+        margin = {top: 20, right: 0, bottom: 30, left: 50},
         padding = {top: 0, right: 0, bottom: 4, left: 0},
         height = outer_height - margin.top - margin.bottom,
         dot_radius = 4; //pixels
@@ -554,10 +623,10 @@ $(document).ready(function () {
             return false;
         }
 
-        console.log(diagram_data);
+        // console.log(diagram_data);
         console.info(Date.now() % 100000, "Ploting data");
         var outer_div_width = $graph_div.width();
-        outer_width = Math.min(Math.max(outer_div_width, 500), 700);
+        outer_width = Math.max(outer_div_width, 500);
 
         width = outer_width - margin.left - margin.right;
         x = d3.scaleLinear().range([0, width]);
@@ -568,12 +637,12 @@ $(document).ready(function () {
         });
 
         // console.log(data);
-        // g.selectAll("circle").remove();
 
         // update svg
-        svg.attr("width", width + margin.left + margin.right)
+        var svg_offset = ($("div.container").width() - outer_width) / 2;
+        svg.attr("width", outer_div_width - svg_offset * 2)
             .attr("height", height + margin.top + margin.bottom)
-            .style("margin-left", ($("div.container").width() - outer_width) / 2);
+            .style("margin-left", svg_offset);
 
 
         // update according to range switch
