@@ -122,7 +122,8 @@ $(document).ready(function () {
                         'sector': company['sector'],
                         'exchange': company['exchange'],
                         'market_cap': company['market_cap'],
-                        'tokens': company['name'] + " " + company['symbol']
+                        'tokens': company['name'] + " " + company['symbol'],
+                        'country': company['country']
                     });
                 $company_select.append($option);
             });
@@ -255,10 +256,9 @@ $(document).ready(function () {
     function selectCap(market_cap) {
         var $wrapper = $(".cap.option-wrapper");
         $wrapper.find("span.option").each(function () {
-            $(this).toggleClass("selected", function () {
-                var range = $(this).data('value');
-                return (!range[0] || range[0] < market_cap) && (!range[1] || market_cap < range[1]);
-            });
+            var range = $(this).data('value');
+            var to_select = (!range[0] || range[0] < market_cap) && (!range[1] || market_cap < range[1]);
+            $(this).toggleClass("selected", to_select);
         });
         updateClearAllButtons($wrapper);
     }
@@ -271,10 +271,10 @@ $(document).ready(function () {
         updateClearAllButtons($wrapper);
     }
 
-    function selectRegion(region_name) {
+    function selectRegion(country_name) {
         var $wrapper = $(".region.option-wrapper");
         $wrapper.find("span.option").each(function () {
-            $(this).toggleClass("selected", $(this).data('value').indexOf(region_name) > -1);
+            $(this).toggleClass("selected", $(this).data('value').indexOf(country_name) > -1);
         });
         updateClearAllButtons($wrapper);
     }
@@ -497,10 +497,8 @@ $(document).ready(function () {
             color_scale = d3.scaleOrdinal(d3.schemeCategory20);
         } else if (color_count > 10) {
             color_scale = d3.scaleOrdinal(d3.schemePaired);
-        } else if (color_count > 0) {
-            color_scale = d3.scaleOrdinal(d3.schemeCategory10);
         } else {
-            color_scale = d3.scaleOrdinal(["#777777"]);
+            color_scale = d3.scaleOrdinal(d3.schemeCategory10);
         }
     }
 
