@@ -185,16 +185,10 @@ $(document).ready(function () {
 
             // company select
             $company_select.on("input change", function () {
-                var option_data = $(this).find("option:selected").data();
-                if (option_data) {
+                if ($(this).val()) {
                     switchRange(false);
-                    selectExchange(option_data['exchange']);
-                    selectCap(option_data['market_cap']);
-                    selectSector(option_data['sector']);
-                    selectRegion(option_data['country']);
-
-                    updateDiagramWrapper();
                 }
+                updateDiagramWrapper();
             });
 
             // span click
