@@ -185,9 +185,10 @@ $(document).ready(function () {
 
             // company select
             $company_select.on("input change", function () {
-                if ($(this).val()) {
-                    switchRange(false);
-                }
+                var selected = !!$(this).val();
+                $(".company-select-wrapper .clear-button-select").toggleClass("invisible", !selected);
+                if (selected) switchRange(false);
+
                 updateDiagramWrapper();
             });
 
@@ -209,11 +210,18 @@ $(document).ready(function () {
                 updateDiagramWrapper();
             });
 
-            // clear all button
+            // clear all button for span
             $(".clear-button").click(function () {
                 $(this).closest(".option-wrapper").find("span").removeClass("selected");
                 updateDiagramWrapper();
                 updateClearAllButtons();
+            });
+
+            // clear all button for company select
+            $(".clear-button-select").click(function () {
+                $(this).closest(".select-wrapper").find('.selectpicker').selectpicker('val', '').trigger('change');
+
+                updateDiagramWrapper();
             });
 
             // industry select

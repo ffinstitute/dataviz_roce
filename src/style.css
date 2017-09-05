@@ -40,8 +40,8 @@ span#title {
     font-family: Anton, monospace;
 }
 
-.company-select-wrapper .form-control {
-    max-width: 276px;
+.company-select-wrapper div.form-control {
+    max-width: 244px;
 }
 
 .year-select-wrapper {
@@ -91,7 +91,6 @@ span.option, span.option-activate-demo, span.option-deactivate-demo {
 }
 
 .clear-button {
-    margin-left: 5px;
     line-height: 1;
 }
 
