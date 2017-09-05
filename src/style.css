@@ -160,16 +160,6 @@ circle.dot {
     fill-opacity: 0.65;
 }
 
-.d3-tip {
-    line-height: 1.3;
-    padding: 6px;
-    background: rgba(0, 0, 0, 0.8);
-    color: #fff;
-    border-radius: 4px;
-    font-size: 11px;
-    z-index: 999;
-}
-
 .axis-label {
     fill: #737373;
     font-size: 12px;
@@ -307,6 +297,16 @@ circle.dot {
 }
 
 /*** Tooltip ***/
+.d3-tip {
+    line-height: 1.3;
+    padding: 6px;
+    background: #000000;
+    color: #ffffff;
+    border-radius: 4px;
+    font-size: 11px;
+    z-index: 999;
+}
+
 .d3-tip table thead th {
     padding-bottom: 4px;
     font-size: 14px;
