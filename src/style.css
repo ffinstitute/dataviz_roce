@@ -21,11 +21,10 @@ General styles
  */
 span#title {
     font-weight: 800;
-    font-family: Calibri;
-    font-size: 48px;
+    font-size: 44px;
     color: #606366;
     display: inline-block;
-    margin: -11px 0px 0px -5px;
+    margin: -8px 0 0 -5px;
 }
 
 .subtitle {
@@ -41,7 +40,7 @@ span#title {
     font-family: Anton, monospace;
 }
 
-.company-select-wrapper .form-control{
+.company-select-wrapper .form-control {
     max-width: 276px;
 }
 
@@ -140,11 +139,11 @@ span.option.selected, span.option-activate-demo {
 * Diagram
 **/
 .axis path, .axis line {
-    stroke: #808080;
+    stroke: #b5b5b5;
 }
 
 .axis text {
-    color: #808080;
+    fill: #737373;
 }
 
 .grid line {
@@ -172,7 +171,7 @@ circle.dot {
 }
 
 .axis-label {
-    fill: #555555;
+    fill: #737373;
     font-size: 12px;
 }
 
@@ -305,4 +304,26 @@ circle.dot {
         -o-transform: rotate(360deg);
         transform: rotate(360deg);
     }
+}
+
+/*** Tooltip ***/
+.d3-tip table thead th {
+    padding-bottom: 4px;
+    font-size: 14px;
+    font-weight: 400;
+}
+
+.d3-tip table tbody th {
+    min-width: 105px;
+    font-weight: 400;
+}
+
+.d3-tip table tbody {
+    line-height: 1.5;
+    font-weight: 300;
+    font-size: 12px;
+}
+
+.d3-tip table tbody td {
+    text-align: right;
 }

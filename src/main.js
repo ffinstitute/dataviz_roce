@@ -588,7 +588,7 @@ $(document).ready(function () {
         .direction('s')
         .offset([8, 0])
         .html(function (d) {
-            return "<table><tbody><tr><th colspan='2'>" + d['name'] + " (" + d['symbol'] + ")</th></tr>"
+            return "<table><thead><tr><th colspan='2'>" + d['name'] + " (" + d['symbol'] + ")</th></tr></thead><tbody>"
                 + "<tr><th>" + "Total Revenue" + "</th><td>" + formatIntDisplay(d['TRV']) + "</td></tr>"
                 + "<tr><th>" + "Tax Rate" + "</th><td>" + formatPercentageDisplay(d['TXR']) + "</td></tr>"
                 + "<tr><th>" + "Operating Income" + "</th><td>" + formatIntDisplay(d['OI']) + "</td></tr>"
@@ -596,7 +596,7 @@ $(document).ready(function () {
                 + "<tr><th>" + "Turnover Ratio" + "</th><td>" + d['TR'] + "</td></tr>"
                 + "<tr><th>" + "Operating Margin" + "</th><td>" + formatPercentageDisplay(d['OM']) + "</td></tr>"
                 + "<tr><th>" + "ROCE" + "</th><td>" + formatPercentageDisplay(d['RC']) + "</td></tr>"
-                + "</tbody></table>";
+                + "</thead></table>";
         });
     svg.call(tool_tip);
 
