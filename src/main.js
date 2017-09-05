@@ -185,12 +185,15 @@ $(document).ready(function () {
             // company select
             $company_select.on("input change", function () {
                 var option_data = $(this).find("option:selected").data();
-                selectExchange(option_data['exchange']);
-                selectCap(option_data['market_cap']);
-                selectSector(option_data['sector']);
-                selectRegion(option_data['country']);
+                if (option_data) {
+                    switchRange(false);
+                    selectExchange(option_data['exchange']);
+                    selectCap(option_data['market_cap']);
+                    selectSector(option_data['sector']);
+                    selectRegion(option_data['country']);
 
-                updateDiagramWrapper();
+                    updateDiagramWrapper();
+                }
             });
 
             // span click
@@ -235,6 +238,12 @@ $(document).ready(function () {
     }
 
     /*** programmatically select options ***/
+    function switchRange(on) {
+        if (optimized_range_on !== on) {
+            $range_switch.mousedown().mouseup();
+        }
+    }
+
     function selectExchange(exchange_name) {
         var $wrapper = $(".exchange.option-wrapper");
         $wrapper.find("span.option").each(function () {
