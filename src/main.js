@@ -18,9 +18,7 @@ $(document).ready(function () {
         $color_legend_select = $("#color-legend-select"),
         $year_select = $("#year-select"),
         $range_switch = $("#range-switch"),
-        $shade_switch = $("#shade-switch"),
         $graph_div = $("#graphDiv"),
-        shade_on = true,
         optimized_range_on = true,
         diagram_data = [],
         exchange_list = [],
@@ -162,10 +160,6 @@ $(document).ready(function () {
             /** add listeners **/
             $range_switch.on("mouseup", function () {
                 optimized_range_on = $range_switch.hasClass("selected");
-                updateDiagramWrapper();
-            });
-            $shade_switch.on("mouseup", function () {
-                shade_on = $shade_switch.hasClass("selected");
                 updateDiagramWrapper();
             });
 
@@ -759,29 +753,23 @@ $(document).ready(function () {
             .attr("x", -(height / 2));
 
         // Update shade area
-        if (shade_on) {
-            var shade_data = [];
-            for (var xx = 1e-1; xx <= x.domain()[1]; xx += 1e-1) {
-                shade_data.push({
-                    x: xx,
-                    y1: 0.15 / xx,
-                    y2: 0.2 / xx
-                })
-            }
-            d3.select(".shade-area")
-                .data([shade_data])
-                .classed("hidden", false)
-                .attr("d", d3.area().x(function (d) {
-                    return x(d['x']);
-                }).y0(function (d) {
-                    return y(d['y1'])
-                }).y1(function (d) {
-                    return y(d['y2']);
-                }));
-        } else {
-            d3.select(".shade-area").classed("hidden", true);
+        var shade_data = [];
+        for (var xx = 1e-1; xx <= x.domain()[1]; xx += 1e-1) {
+            shade_data.push({
+                x: xx,
+                y1: 0.15 / xx,
+                y2: 0.2 / xx
+            })
         }
-
-
+        d3.select(".shade-area")
+            .data([shade_data])
+            .classed("hidden", false)
+            .attr("d", d3.area().x(function (d) {
+                return x(d['x']);
+            }).y0(function (d) {
+                return y(d['y1'])
+            }).y1(function (d) {
+                return y(d['y2']);
+            }));
     }
 });
