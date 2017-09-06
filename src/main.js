@@ -602,7 +602,7 @@ $(document).ready(function () {
     var svg = d3.select("#graphDiv svg"),
         g = svg.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-    var tool_tip = d3.tip()
+    var dot_tool_tip = d3.tip()
         .attr("class", "d3-tip")
         .direction('s')
         .offset([8, 0])
@@ -617,7 +617,17 @@ $(document).ready(function () {
                 + "<tr><th>" + "ROCE" + "</th><td>" + formatPercentageDisplay(d['RC']) + "</td></tr>"
                 + "</thead></table>";
         });
-    svg.call(tool_tip);
+
+    var shade_tool_tip = d3.tip()
+        .attr("class", "d3-tip")
+        .direction('s')
+        .html(function (d) {
+            var d0 = d[0];
+            return "ROCE Range(%): " + d0['x'] * d0['y1'] * 100 + "-" + d0['x'] * d0['y2'] * 100;
+        });
+
+    svg.call(dot_tool_tip);
+    svg.call(shade_tool_tip);
 
     // Add Axis
     g.append("g").attr("class", "grid x-grid");
@@ -722,7 +732,7 @@ $(document).ready(function () {
             .attr("class", "dot")
             .merge(dots)
             .on("mouseover", function (d) {
-                tool_tip.show(d);
+                dot_tool_tip.show(d);
 
                 // handle dot
                 d3.select(this).attr("r", dot_radius * 2.5).classed("hover", true);
@@ -731,7 +741,7 @@ $(document).ready(function () {
                 // handle dot
                 d3.select(this).attr("r", dot_radius).classed("hover", false);
 
-                tool_tip.hide();
+                dot_tool_tip.hide();
             })
             .attr("cx", function (d) {
                 return x(d['TR']);
@@ -767,9 +777,18 @@ $(document).ready(function () {
             .attr("x", -(height / 2));
 
         // Update shade area
-        d3.select(".shade-area-1").data(getShadeAreaData(0.05, 0.1, x.domain()));
-        d3.select(".shade-area-2").data(getShadeAreaData(0.15, 0.2, x.domain()));
-
+        d3.select(".shade-area-1").data(getShadeAreaData(0.05, 0.1, x.domain()))
+            .on("mouseover", function (d) {
+                shade_tool_tip.offset([-10, 0]).show(d);
+                // handle dot
+                d3.select(this).classed("hover", true);
+            });
+        d3.select(".shade-area-2").data(getShadeAreaData(0.15, 0.2, x.domain()))
+            .on("mouseover", function (d) {
+                shade_tool_tip.offset([-40, 0]).show(d);
+                // handle dot
+                d3.select(this).classed("hover", true);
+            });
         d3.selectAll(".shade-area")
             .attr("d", d3.area().x(function (d) {
                 return x(d['x']);
@@ -777,6 +796,11 @@ $(document).ready(function () {
                 return y(d['y1'])
             }).y1(function (d) {
                 return y(d['y2']);
-            }));
+            }))
+            .on("mouseout", function () {
+                // handle dot
+                d3.select(this).classed("hover", false);
+                shade_tool_tip.hide();
+            });
     }
 });
