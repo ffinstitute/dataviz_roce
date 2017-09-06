@@ -28,7 +28,6 @@ $(document).ready(function () {
         market_cap_list = [],
         region_list = [],
         sector_list = [],
-        industry_dict = {},
         company_data, ROCE_data, graph_div_width, config,
         optimized_range = {
             'TR': [0, 5],
@@ -99,16 +98,14 @@ $(document).ready(function () {
             company_data = $.grep($.map(company_data, function (datum1) {
                 // console.log(datum);
                 var sector = datum1['sector'],
-                    industry = datum1['industry'],
                     exchange = datum1['exchange'];
 
-                if (!sector || !industry || sector === "n/a" || industry === "n/a") return false;
+                if (!sector || sector === "n/a") return false;
 
                 if (exchange_list.indexOf(exchange) === -1) exchange_list.push(exchange);
 
-                // fill sector_list, industry_list
+                // fill sector_list
                 if (sector_list.indexOf(sector) === -1) sector_list.push(sector);
-                industry_dict[industry] = sector;
                 return datum1;
             }), function (datum) {
                 return datum !== false && company_ids.indexOf(datum['id']) > -1;
@@ -155,17 +152,6 @@ $(document).ready(function () {
             $.each(sector_list, function (i, sector_name) {
                 $(".sector").append(generateOptionElement(sector_name, sector_name));
             });
-
-            // init industry options
-            $.each(industry_dict, function (industry_name, sector_name) {
-                var $option = $('<option value="' + industry_name + '">' + industry_name + '</option>')
-                    .data({
-                        'sector': sector_name,
-                        'tokens': sector_name + " " + industry_name
-                    });
-                $(".industry select").append($option);
-            });
-            $('.industry .selectpicker').selectpicker('refresh');
 
             // as this will init color_scale, which is needed by diagram, we must run this before init diagram
             initColorLegend();
@@ -221,14 +207,6 @@ $(document).ready(function () {
             $(".clear-button-select").click(function () {
                 $(this).closest(".select-wrapper").find('.selectpicker').selectpicker('val', '').trigger('change');
 
-                updateDiagramWrapper();
-            });
-
-            // industry select
-            $('div.industry.option-wrapper select').on("input change", function () {
-                var sector_name = $(this).find("option:selected").data('sector');
-
-                selectSector(sector_name);
                 updateDiagramWrapper();
             });
 
@@ -380,7 +358,6 @@ $(document).ready(function () {
             sector_options = options['sector'],
             region_options = options['region'],
             /*** end of items ***/
-            industry_options = options['industry'],
             selected_company_symbol = $company_select.val();
 
         $.each(company_data, function () {
@@ -444,11 +421,6 @@ $(document).ready(function () {
                     }
                 });
                 if (!matched) return;
-
-                // filter by industry
-                if (industry_options && industry_options.indexOf(this['industry']) < 0) {
-                    return;
-                }
 
                 if (!color) color = default_color;
             }
@@ -603,13 +575,11 @@ $(document).ready(function () {
     }
 
     function getOptionsWrapper() {
-        var industry_filter = $('div.industry.option-wrapper select').val();
         return {
             'exchange': getFilterFromSpans("exchange", false),
             'market_cap': getFilterFromSpans("cap", false),
             'sector': getFilterFromSpans("sector", false),
-            'region': getFilterFromSpans("region", false),
-            'industry': industry_filter ? industry_filter : false
+            'region': getFilterFromSpans("region", false)
         };
     }
 

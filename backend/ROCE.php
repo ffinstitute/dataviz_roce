@@ -34,7 +34,7 @@ class ROCE
 
     function getCompanies()
     {
-        $stmt = $this->db->query('SELECT * FROM `nasdaq`.`companies`;');
+        $stmt = $this->db->query('SELECT `country`, `exchange`, `id`, `market_cap`, `name`, `sector`, `symbol` FROM `nasdaq`.`companies`;');
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
 
