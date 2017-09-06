@@ -548,6 +548,18 @@ $(document).ready(function () {
         }
     }
 
+    function getShadeAreaData(min, max, x_domain) {
+        var shade_data = [];
+        for (var xx = 1e-1; xx <= x_domain[1]; xx += 1e-1) {
+            shade_data.push({
+                x: xx,
+                y1: min / xx,
+                y2: max / xx
+            })
+        }
+        return [shade_data];
+    }
+
     /*** Get Filters ***/
     function getFilterFromSpans(wrapper_class_name, empty_return) {
         var options = [];
@@ -626,9 +638,11 @@ $(document).ready(function () {
         .attr("dy", "1em")
         .text("Margin(%)");
 
-    // Add shade area
+    // Add shade areas
     g.append("path")
-        .attr("class", "shade-area");
+        .attr("class", "shade-area shade-area-1");
+    g.append("path")
+        .attr("class", "shade-area shade-area-2");
 
     /**** Initiated ****/
 
@@ -753,17 +767,10 @@ $(document).ready(function () {
             .attr("x", -(height / 2));
 
         // Update shade area
-        var shade_data = [];
-        for (var xx = 1e-1; xx <= x.domain()[1]; xx += 1e-1) {
-            shade_data.push({
-                x: xx,
-                y1: 0.15 / xx,
-                y2: 0.2 / xx
-            })
-        }
-        d3.select(".shade-area")
-            .data([shade_data])
-            .classed("hidden", false)
+        d3.select(".shade-area-1").data(getShadeAreaData(0.05, 0.1, x.domain()));
+        d3.select(".shade-area-2").data(getShadeAreaData(0.15, 0.2, x.domain()));
+
+        d3.selectAll(".shade-area")
             .attr("d", d3.area().x(function (d) {
                 return x(d['x']);
             }).y0(function (d) {
