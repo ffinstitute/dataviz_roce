@@ -2,5 +2,5 @@
  D3 visualization with PHP backend for data
  
 ## TODO
-- Add company dot above graph
 - Optimize company list loading
+- Render more precise shade area according to domain

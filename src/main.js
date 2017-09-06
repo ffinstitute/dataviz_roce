@@ -20,9 +20,9 @@ $(document).ready(function () {
         $range_switch = $("#range-switch"),
         $graph_div = $("#graphDiv"),
         optimized_range_on = true,
+        pre_diagram_data = {},
         diagram_data = [],
         exchange_list = [],
-        year_list = [],
         market_cap_list = [],
         region_list = [],
         sector_list = [],
@@ -31,8 +31,9 @@ $(document).ready(function () {
             'TR': [0, 5],
             'OM': [0, 0.25]
         },
-        default_color = "#5c5c5c";
-
+        default_color = "#5c5c5c",
+        pre_selected_company_data,
+        selected_company_data = [];
 
     // listeners
     $(window).resize(function () {
@@ -155,7 +156,7 @@ $(document).ready(function () {
             initColorLegend();
 
             // init year
-            updateYearOptions(true);
+            // updateYearOptions(true);
 
             /** add listeners **/
             $range_switch.on("mouseup", function () {
@@ -169,20 +170,20 @@ $(document).ready(function () {
                 $(".company-select-wrapper .clear-button-select").toggleClass("hidden", !selected);
                 if (selected) switchRange(false);
 
-                updateDiagramWrapper();
+                updatePreDiagramWrapper();
             });
 
             // span click
             $("span.option").on("mousedown", function () {
                 $(this).toggleClass("selected");
-                updateDiagramWrapper();
+                updatePreDiagramWrapper();
                 updateClearAllButtons();
             });
 
             // legend select
             $color_legend_select.on('hidden.bs.select', function (e) {
                 toggleColorLegend();
-                updateDiagramWrapper();
+                updatePreDiagramWrapper();
             });
 
             // year select
@@ -193,7 +194,7 @@ $(document).ready(function () {
             // clear all button for span
             $(".clear-button").click(function () {
                 $(this).closest(".option-wrapper").find("span").removeClass("selected");
-                updateDiagramWrapper();
+                updatePreDiagramWrapper();
                 updateClearAllButtons();
             });
 
@@ -201,13 +202,13 @@ $(document).ready(function () {
             $(".clear-button-select").click(function () {
                 $(this).closest(".select-wrapper").find('.selectpicker').selectpicker('val', '').trigger('change');
 
-                updateDiagramWrapper();
+                updatePreDiagramWrapper();
             });
 
             // select filters
             selectDefaultOptions();
             // then draw graph
-            updateDiagramWrapper();
+            updatePreDiagramWrapper();
         } else if (company_data === false || ROCE_data === false || config === false) {
             // deal with load error
             alert("Something went wrong. See console log for details.");
@@ -312,8 +313,19 @@ $(document).ready(function () {
             .prepend("<div class='color-legend-rect'></div>");
     }
 
-    function updateDiagramWrapper(skip_update_year) {
-        updateDiagramData(skip_update_year);
+    /***
+     * Data changed, so update everything
+     */
+    function updatePreDiagramWrapper() {
+        updatePreDiagramData();
+        updateDiagramWrapper();
+    }
+
+    /***
+     * Data not changed, just filter by year / optimized range
+     */
+    function updateDiagramWrapper() {
+        updateDiagramData();
         plotDiagram();
     }
 
@@ -340,9 +352,7 @@ $(document).ready(function () {
         $wrapper.addClass("on-legend");
     }
 
-    function updateDiagramData(skip_update_year) {
-        diagram_data = [];
-
+    function updatePreDiagramData() {
         var options = getOptionsWrapper(),
             color_legend = $color_legend_select.val(),
             matched_companies = [],
@@ -354,71 +364,78 @@ $(document).ready(function () {
             /*** end of items ***/
             selected_company_symbol = $company_select.val();
 
+        // fill matched_companies
+        pre_selected_company_data = false;
+
         $.each(company_data, function () {
-            // filter by single company selection
-            if (selected_company_symbol) {
-                if (this['symbol'] !== selected_company_symbol) return;
+            var company = this,
+                is_matched = true,
+                is_selected = false,
+                color;
+            // filter by single company selection, if match, store and push at last
+            if (selected_company_symbol && this['symbol'] === selected_company_symbol) {
+                is_selected = true;
+                pre_selected_company_data = {};
+                color = "#000";
             } else {
-                var company = this,
-                    matched = true;
 
                 // filter by exchange
-                matched = false;
+                is_matched = false;
                 exchange_options.forEach(function (option) {
                     if (option['selected'] === true && option['value'] === company['exchange']) {
-                        matched = true;
+                        is_matched = true;
                         if (color_legend === "exchange") {
                             color = option['color'];
                         }
                         return false;
                     }
                 });
-                if (!matched) return;
+                if (!is_matched) return;
 
                 // filter by market_cap
-                matched = false;
+                is_matched = false;
                 market_cap_options.forEach(function (option) {
                     var value = option['value'];
                     if (option['selected'] === true && (!value[0] || value[0] <= company['market_cap']) && (!value[1] || value[1] > company['market_cap'])) {
-                        matched = true;
+                        is_matched = true;
                         if (color_legend === "market_cap") {
                             color = option['color'];
                         }
                         return false;
                     }
                 });
-                if (!matched) return;
+                if (!is_matched) return;
 
                 // filter by sector
-                matched = false;
+                is_matched = false;
                 sector_options.forEach(function (option) {
                     if (option['selected'] === true && option['value'] === company['sector']) {
-                        matched = true;
+                        is_matched = true;
                         if (color_legend === "sector") {
                             color = option['color'];
                         }
                         return false;
                     }
                 });
-                if (!matched) return;
+                if (!is_matched) return;
 
                 // filter by region
-                matched = false;
+                is_matched = false;
                 // var country_list = [].concat.apply([], region_options);
                 region_options.forEach(function (option) {
                     if (option['selected'] === true && option['value'].indexOf(company['country']) > -1) {
-                        matched = true;
+                        is_matched = true;
                         if (color_legend === "region") {
                             color = option['color'];
                         }
                         return false;
                     }
                 });
-                if (!matched) return;
+                if (!is_matched) return;
 
                 if (!color) color = default_color;
-            }
 
+            }
             /** Now we have valid companies **/
             matched_companies.push({
                 'company_id': this['id'],
@@ -428,37 +445,31 @@ $(document).ready(function () {
                 'market_cap': this['market_cap'],
                 'sector': this['sector'],
                 'country': this['country'],
-                'color': color
+                'color': color,
+                'selected': is_selected // here it's just boolean, we will fill it later
             });
         });
-
         // console.log(matched_companies);
-
+        pre_diagram_data = {};
         if (matched_companies.length === 0) return false;
 
-        var selected_year = $year_select.val();
-        year_list = []; // update year_list
+        // fill diagram_data
         $.each(ROCE_data, function () {
             var ROCE_datum = this;
             var year = this['Y'];
 
             // console.log(ROCE_datum);
 
-            if (optimized_range_on) {
-                if (ROCE_datum['TR'] > optimized_range['TR'][1] || ROCE_datum['TR'] < optimized_range['TR'][0]) return;
-                if (ROCE_datum['OM'] > optimized_range['OM'][1] || ROCE_datum['OM'] < optimized_range['OM'][0]) return;
-            }
-
             $.each(matched_companies, function () {
                 // console.log("matched company", this);
                 if (this['company_id'] === ROCE_datum['cId']) {
-                    if (year_list.indexOf(year) === -1) {
-                        year_list.push(year);
-                    }
+                    // fill diagram_data
+                    if (!pre_diagram_data[year]) pre_diagram_data[year] = [];
+                    pre_diagram_data[year].push($.extend({}, ROCE_datum, this));
 
-                    if (!selected_year || year === selected_year) {
-                        var diagram_datum = $.extend({}, ROCE_datum, this);
-                        diagram_data.push(diagram_datum);
+                    if (this['selected']) {
+                        if (!pre_selected_company_data[year]) pre_selected_company_data[year] = [];
+                        pre_selected_company_data[year] = $.extend({}, ROCE_datum, this);
                     }
 
                     return false;
@@ -466,7 +477,19 @@ $(document).ready(function () {
             });
         });
 
-        if (!skip_update_year) updateYearOptions();
+        updateYearOptions();
+    }
+
+    function updateDiagramData() {
+        var selected_year = $year_select.val();
+        diagram_data = pre_diagram_data[selected_year];
+        selected_company_data = pre_selected_company_data[selected_year];
+        if (optimized_range_on) {
+            diagram_data = diagram_data.filter(function (datum) {
+                return datum['TR'] <= optimized_range['TR'][1] && datum['TR'] >= optimized_range['TR'][0]
+                    && datum['OM'] <= optimized_range['OM'][1] && datum['OM'] >= optimized_range['OM'][0];
+            });
+        }
     }
 
     function formatPercentageDisplay(number, decimals, percent_sign) {
@@ -515,30 +538,32 @@ $(document).ready(function () {
         return color_scale;
     }
 
-    function updateYearOptions(do_init) {
-        if (do_init) {
-            $.each(ROCE_data, function () {
-                // update year_list
-                var year = this['Y'];
-                if (year_list.indexOf(year) === -1) {
-                    year_list.push(year);
-                }
-            });
+    function updateYearOptions() {
+        // get year list from pre_diagram_data
+        var year_list;
+        if (pre_selected_company_data) {
+            year_list = Object.keys(pre_selected_company_data);
+        } else {
+            year_list = Object.keys(pre_diagram_data);
         }
         year_list = year_list.sort().reverse();
+
         var selected_year = $year_select.val();
+
         $year_select.empty();
         $.each(year_list, function () {
             var $option = $('<option></option>').prop("value", this).text(this);
             $year_select.append($option);
         });
         if (year_list.indexOf(selected_year) > -1) {
+            // already selected a year in list
             $year_select.val(selected_year);
             $year_select.selectpicker('refresh');
         } else {
+            // we need to select another year coz the year selected is not in the list
             $year_select.val(year_list[0]);
             $year_select.selectpicker('refresh');
-            if (!do_init) updateDiagramWrapper(true);
+            updateDiagramWrapper();
         }
     }
 
@@ -666,12 +691,11 @@ $(document).ready(function () {
     /**** Initiated ****/
 
     function plotDiagram() {
-        if (!diagram_data) {
+        if (!diagram_data.length) {
             return false;
         }
-
         // console.log(diagram_data);
-        console.info(Date.now() % 100000, "Ploting data");
+        console.info(Date.now() % 100000 + ' Ploting data with ' + diagram_data.length + ' dots');
         var outer_div_width = $graph_div.width();
         outer_width = Math.max(outer_div_width, 500);
 
@@ -697,16 +721,18 @@ $(document).ready(function () {
             x.domain(optimized_range['TR']);
             y.domain(optimized_range['OM']);
         } else {
-            x.domain([d3.min(diagram_data, function (d) {
-                return d['TR'] > 0 ? 0 : d['TR'];
-            }), d3.max(diagram_data, function (d) {
-                return d['TR'];
-            })]);
-            y.domain([d3.min(diagram_data, function (d) {
-                return d['OM'] > 0 ? 0 : d['OM'];
-            }), d3.max(diagram_data, function (d) {
-                return d['OM'];
-            })]);
+            if (diagram_data.length) {
+                x.domain([d3.min(diagram_data, function (d) {
+                    return d['TR'] > 0 ? 0 : d['TR'];
+                }), d3.max(diagram_data, function (d) {
+                    return d['TR'];
+                })]);
+                y.domain([d3.min(diagram_data, function (d) {
+                    return d['OM'] > 0 ? 0 : d['OM'];
+                }), d3.max(diagram_data, function (d) {
+                    return d['OM'];
+                })]);
+            }
         }
 
         var t = d3.transition()
@@ -723,22 +749,29 @@ $(document).ready(function () {
             .call(d3.axisLeft(y).ticks().tickSize(-width).tickFormat(""));
 
         // Update the scatterplot
-        var dots = g.selectAll("circle").data(diagram_data);
 
-        dots.exit()
-            .classed("exit", true)
-            .attr("r", dot_radius * 5)
-            .style("fill-opacity", 1e-6)
-            .remove();
+        // update general dots
+        var dots = g.selectAll("circle.general").data(diagram_data);
 
-        dots.classed("update", true)
-            .attr("fill", function (d) {
-                return d['color'];
-            });
+        dots.exit().remove();
+
+        dots.attr("class", function (d) {
+            if (d['selected']) {
+                return "dot general selected";
+            } else {
+                return "dot general";
+            }
+        });
 
         dots.enter().append("circle")
             .attr("r", dot_radius)
-            .attr("class", "dot")
+            .attr("class", function (d) {
+                if (d['selected']) {
+                    return "dot general selected";
+                } else {
+                    return "dot general";
+                }
+            })
             .merge(dots)
             .on("mouseover", function (d) {
                 dot_tool_tip.show(d);
@@ -761,6 +794,8 @@ $(document).ready(function () {
             .attr("fill", function (d) {
                 return d['color'];
             });
+
+        console.log("selected company data", pre_selected_company_data);
 
         // Update Axis
         g.select(".x-axis")
@@ -811,5 +846,37 @@ $(document).ready(function () {
                 d3.select(this).classed("hover", false);
                 shade_tool_tip.hide();
             });
+
+        // Update selected company cross
+        // Add selected company cross
+        g.selectAll("line.selected-company-cross").remove();
+
+        if (selected_company_data) {
+            g.append("line")
+                .attr("class", "selected-company-cross selected-company-cross-x")
+                .attr("x1", x(x.domain()[0]))
+                .attr("y1", y(selected_company_data['OM']))
+                .attr("x2", x(x.domain()[1]))
+                .attr("y2", y(selected_company_data['OM']));
+
+            g.append("line")
+                .attr("class", "selected-company-cross selected-company-cross-y")
+                .attr("x1", x(selected_company_data['TR']))
+                .attr("y1", y(y.domain()[0]))
+                .attr("x2", x(selected_company_data['TR']))
+                .attr("y2", y(y.domain()[1]));
+
+
+            g.selectAll("line.selected-company-cross")
+                .on("mouseover", function () {
+                    g.selectAll("line.selected-company-cross").style("stroke-width", 4);
+                })
+                .on("mouseout", function () {
+                    g.selectAll("line.selected-company-cross").style("stroke-width", '')
+                });
+            // put selected company dot to top
+            $graph_div.find('svg>g').append($('circle.selected'));
+        }
     }
-});
+})
+;

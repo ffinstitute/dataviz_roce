@@ -173,6 +173,12 @@ circle.dot {
     fill: #575757;
 }
 
+line.selected-company-cross {
+    stroke: #868686;
+    stroke-dasharray: 5;
+    stroke-width: 2px;
+}
+
 /**
 * Loading overlay
  */
