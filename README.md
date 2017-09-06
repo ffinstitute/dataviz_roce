@@ -4,4 +4,3 @@
 ## TODO
 - Add company dot above graph
 - Optimize company list loading
-- Add all option info to tooltip

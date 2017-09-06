@@ -424,6 +424,10 @@ $(document).ready(function () {
                 'company_id': this['id'],
                 'symbol': this['symbol'],
                 'name': this['name'],
+                'exchange': this['exchange'],
+                'market_cap': this['market_cap'],
+                'sector': this['sector'],
+                'country': this['country'],
                 'color': color
             });
         });
@@ -602,12 +606,17 @@ $(document).ready(function () {
     var svg = d3.select("#graphDiv svg"),
         g = svg.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
+    // init tooltips
     var dot_tool_tip = d3.tip()
         .attr("class", "d3-tip")
         .direction('s')
         .offset([8, 0])
         .html(function (d) {
             return "<table><thead><tr><th colspan='2'>" + d['name'] + " (" + d['symbol'] + ")</th></tr></thead><tbody>"
+                + "<tr><th>" + "Exchange" + "</th><td>" + d['exchange'] + "</td></tr>"
+                + "<tr><th>" + "Market Cap" + "</th><td>" + formatIntDisplay(d['market_cap'], "$", ",", 1) + "</td></tr>"
+                + "<tr><th>" + "Sector" + "</th><td>" + d['sector'] + "</td></tr>"
+                + "<tr><th>" + "Country" + "</th><td>" + d['country'] + "</td></tr>"
                 + "<tr><th>" + "Total Revenue" + "</th><td>" + formatIntDisplay(d['TRV']) + "</td></tr>"
                 + "<tr><th>" + "Tax Rate" + "</th><td>" + formatPercentageDisplay(d['TXR']) + "</td></tr>"
                 + "<tr><th>" + "Operating Income" + "</th><td>" + formatIntDisplay(d['OI']) + "</td></tr>"
