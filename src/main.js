@@ -166,7 +166,7 @@ $(document).ready(function () {
             // company select
             $company_select.on("input change", function () {
                 var selected = !!$(this).val();
-                $(".company-select-wrapper .clear-button-select").toggleClass("invisible", !selected);
+                $(".company-select-wrapper .clear-button-select").toggleClass("hidden", !selected);
                 if (selected) switchRange(false);
 
                 updateDiagramWrapper();
@@ -623,7 +623,7 @@ $(document).ready(function () {
         .direction('s')
         .html(function (d) {
             var d0 = d[0];
-            return "ROCE Range(%): " + d0['x'] * d0['y1'] * 100 + "-" + d0['x'] * d0['y2'] * 100;
+            return "ROCE range(%): " + d0['x'] * d0['y1'] * 100 + " - " + d0['x'] * d0['y2'] * 100;
         });
 
     svg.call(dot_tool_tip);
