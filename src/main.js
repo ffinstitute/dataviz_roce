@@ -176,6 +176,10 @@ $(document).ready(function () {
             // span click
             $("span.option").on("mousedown", function () {
                 $(this).toggleClass("selected");
+                if (this.id === "range-switch") {
+                    // we only need range-switch to be selected, no pre data update required
+                    return;
+                }
                 updatePreDiagramWrapper();
                 updateClearAllButtons();
             });
@@ -326,6 +330,15 @@ $(document).ready(function () {
      */
     function updateDiagramWrapper() {
         updateDiagramData();
+
+        if (diagram_data && !diagram_data.length) {
+            var selected_year = $year_select.val();
+            if (!!pre_diagram_data[selected_year] && pre_diagram_data[selected_year].length) {
+                // all data are out of range, turn off optimized range
+                console.log("There is data but all out of range, turn off optimized range");
+                return switchRange(false);
+            }
+        }
         plotDiagram();
     }
 
@@ -483,6 +496,7 @@ $(document).ready(function () {
     function updateDiagramData() {
         var selected_year = $year_select.val();
         diagram_data = pre_diagram_data[selected_year];
+        diagram_data = diagram_data ? diagram_data : [];
         selected_company_data = pre_selected_company_data[selected_year];
         if (optimized_range_on) {
             diagram_data = diagram_data.filter(function (datum) {
@@ -563,7 +577,7 @@ $(document).ready(function () {
             // we need to select another year coz the year selected is not in the list
             $year_select.val(year_list[0]);
             $year_select.selectpicker('refresh');
-            updateDiagramWrapper();
+            // updateDiagramWrapper();
         }
     }
 
@@ -691,9 +705,6 @@ $(document).ready(function () {
     /**** Initiated ****/
 
     function plotDiagram() {
-        if (!diagram_data.length) {
-            return false;
-        }
         // console.log(diagram_data);
         console.info(Date.now() % 100000 + ' Ploting data with ' + diagram_data.length + ' dots');
         var outer_div_width = $graph_div.width();
