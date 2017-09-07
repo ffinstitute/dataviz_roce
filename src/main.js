@@ -168,7 +168,6 @@ $(document).ready(function () {
             $company_select.on("input change", function () {
                 var selected = !!$(this).val();
                 $(".company-select-wrapper .clear-button-select").toggleClass("hidden", !selected);
-                if (selected) switchRange(false);
 
                 updatePreDiagramWrapper();
             });
@@ -339,7 +338,14 @@ $(document).ready(function () {
                 return switchRange(false);
             }
         }
+
         plotDiagram();
+
+        if (selected_company_data && !$("circle.selected").length) {
+            // company is out of range
+            console.log("Company out of range");
+            switchRange(false);
+        }
     }
 
     function toggleColorLegend() {
@@ -497,7 +503,7 @@ $(document).ready(function () {
         var selected_year = $year_select.val();
         diagram_data = pre_diagram_data[selected_year];
         diagram_data = diagram_data ? diagram_data : [];
-        selected_company_data = pre_selected_company_data[selected_year];
+        selected_company_data = pre_selected_company_data[selected_year]; // not filtered
         if (optimized_range_on) {
             diagram_data = diagram_data.filter(function (datum) {
                 return datum['TR'] <= optimized_range['TR'][1] && datum['TR'] >= optimized_range['TR'][0]
@@ -806,7 +812,7 @@ $(document).ready(function () {
                 return d['color'];
             });
 
-        console.log("selected company data", pre_selected_company_data);
+        // console.log("selected company data", pre_selected_company_data);
 
         // Update Axis
         g.select(".x-axis")
