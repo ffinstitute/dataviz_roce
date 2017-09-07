@@ -3,5 +3,5 @@
  
 ## TODO
 - Optimize company list loading
-- Render more precise shade area according to domain
 - Change company default option text to "Select one to highlight"
+- Add little "padding" to unoptimized range

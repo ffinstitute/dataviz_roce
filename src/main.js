@@ -598,8 +598,11 @@ $(document).ready(function () {
     }
 
     function getShadeAreaData(min, max, x_domain) {
-        var shade_data = [];
-        for (var xx = 1e-1; xx <= x_domain[1]; xx += 1e-1) {
+        var shade_data = [],
+            x_min = x_domain[0],
+            x_max = x_domain[1],
+            step = (x_max - x_min) / 100;
+        for (var xx = x_min + step; xx <= x_max; xx += step) {
             shade_data.push({
                 x: xx,
                 y1: min / xx,
