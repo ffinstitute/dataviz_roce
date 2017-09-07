@@ -869,10 +869,12 @@ $(document).ready(function () {
 
             g.selectAll("line.selected-company-cross")
                 .on("mouseover", function () {
-                    g.selectAll("line.selected-company-cross").style("stroke-width", 4);
+                    g.selectAll("line.selected-company-cross").classed("hover", true);
+                    g.selectAll("circle.selected").dispatch("mouseover");
                 })
                 .on("mouseout", function () {
-                    g.selectAll("line.selected-company-cross").style("stroke-width", '')
+                    g.selectAll("line.selected-company-cross").classed("hover", false);
+                    g.selectAll("circle.selected").dispatch("mouseout");
                 });
             // put selected company dot to top
             $graph_div.find('svg>g').append($('circle.selected'));
