@@ -742,16 +742,18 @@ $(document).ready(function () {
             y.domain(optimized_range['OM']);
         } else {
             if (diagram_data.length) {
-                x.domain([d3.min(diagram_data, function (d) {
-                    return d['TR'] > 0 ? 0 : d['TR'];
-                }), d3.max(diagram_data, function (d) {
-                    return d['TR'];
-                })]);
-                y.domain([d3.min(diagram_data, function (d) {
-                    return d['OM'] > 0 ? 0 : d['OM'];
-                }), d3.max(diagram_data, function (d) {
-                    return d['OM'];
-                })]);
+                var x_range = d3.extent(diagram_data, function (d) {
+                        return d['TR'];
+                    }),
+                    y_range = d3.extent(diagram_data, function (d) {
+                        return d['OM'];
+                    }),
+
+                    x_padding = (x_range[1] - x_range[0]) / 10,
+                    y_padding = (y_range[1] - y_range[0]) / 10;
+
+                x.domain([x_range[0] < 0 ? x_range[0] - x_padding : 0, x_range[1] + x_padding]);
+                y.domain([y_range[0] < 0 ? y_range[0] - y_padding : 0, y_range[1] + y_padding]);
             }
         }
 

@@ -4,4 +4,3 @@
 ## TODO
 - Optimize company list loading
 - Change company default option text to "Select one to highlight"
-- Add little "padding" to unoptimized range
