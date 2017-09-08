@@ -758,6 +758,9 @@ $(document).ready(function () {
                     x_padding = (x_range[1] - x_range[0]) / 10,
                     y_padding = (y_range[1] - y_range[0]) / 10;
 
+                x_padding = x_padding === 0 ? 1 : x_padding;
+                y_padding = y_padding === 0 ? 0.05 : y_padding;
+
                 x.domain([x_range[0] < 0 ? x_range[0] - x_padding : 0, x_range[1] + x_padding]);
                 y.domain([y_range[0] < 0 ? y_range[0] - y_padding : 0, y_range[1] + y_padding]);
             }
