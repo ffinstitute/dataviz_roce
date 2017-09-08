@@ -223,8 +223,10 @@ $(document).ready(function () {
     function selectDefaultOptions() {
         selectExchange("NYSE");
         selectExchange("NASDAQ", true);
+        selectExchange("AMEX", true);
         selectCap(3e9);
-        selectSector("Consumer Services");
+        selectSector("Finance");
+        selectSector("Health Care", true);
         selectRegion("United States");
     }
 
