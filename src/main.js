@@ -562,7 +562,8 @@ $(document).ready(function () {
 
     function updateYearOptions() {
         // get year list from pre_diagram_data
-        var year_list;
+        var allowed_year_list = ['2014', '2015', '2016'],
+            year_list = [];
         if (pre_selected_company_data) {
             year_list = Object.keys(pre_selected_company_data);
         } else {
@@ -574,6 +575,9 @@ $(document).ready(function () {
 
         $year_select.empty();
         $.each(year_list, function () {
+            // filter by allowed_year_list
+            if (allowed_year_list.indexOf(this.toString()) < 0) return; // this year is not allowed
+
             var $option = $('<option></option>').prop("value", this).text(this);
             $year_select.append($option);
         });
